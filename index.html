@@ -117,6 +117,11 @@ tr:hover td{background:#fafafa}
 .master-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .master-pill{border:1px solid #bbb;padding:6px 8px;font-size:11px;background:#fff}
 .master-pill.off{color:#aaa;text-decoration:line-through;background:#f3f3f3}
+.washcard-search{display:flex;gap:7px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-top:4px solid var(--red);padding:13px}
+.washcard-search input{min-width:220px;padding:9px 10px;border:1px solid #999}
+.washcard-summary{background:#111;color:#fff;padding:11px 13px;margin:8px 0;font-size:12px;line-height:1.55;border-left:5px solid var(--red)}
+.washcard-empty{padding:32px;text-align:center;color:#777;background:#fff}
+.card-link{border:0;background:transparent;color:var(--red);font-weight:800;text-decoration:underline;text-underline-offset:2px;padding:0}
 .statusbar{position:sticky;bottom:0;background:#111;color:#ddd;padding:7px 12px;font-size:11px;z-index:30;border-top:3px solid var(--red)}
 .modal-bg{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:100}
 .modal{width:min(500px,calc(100% - 24px));background:#fff;border-top:6px solid var(--red);padding:20px;box-shadow:0 18px 60px #0008}
@@ -171,6 +176,7 @@ tr:hover td{background:#fafafa}
       <button id="monthTab" class="active">월매출</button>
       <button id="yearTab">연매출</button>
       <button id="supplyTab">세차용품</button>
+      <button id="washcardTab">세차카드 조회</button>
     </nav>
   </div>
 
@@ -287,6 +293,41 @@ tr:hover td{background:#fafafa}
         </aside>
       </div>
     </section>
+
+    <section id="washcardView" class="hidden">
+      <div class="toolbar">
+        <div class="title" style="text-align:left">세차카드 조회</div>
+        <div class="summary">Supabase 카드 거래DB</div>
+      </div>
+
+      <div class="washcard-search">
+        <label for="washcardQuery" style="font-weight:800">세차카드 번호</label>
+        <input id="washcardQuery" autocomplete="off" placeholder="예: 774BC074">
+        <button id="washcardSearchBtn" class="btn primary">조회</button>
+        <button id="washcardClearBtn" class="btn">지우기</button>
+        <span style="font-size:11px;color:#666">8자리 입력 시 정확히 조회, 짧게 입력하면 부분검색</span>
+      </div>
+
+      <div id="washcardSummary" class="washcard-summary">세차카드 번호를 입력하세요.</div>
+      <div id="washcardEmpty" class="washcard-empty hidden">일치하는 세차카드 거래가 없습니다.</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th id="washcardDateHead" style="cursor:pointer">거래일시 ▼</th>
+              <th>기기</th>
+              <th>거래종류</th>
+              <th>금액</th>
+              <th>잔액</th>
+              <th>카드번호</th>
+              <th>단말기IP</th>
+              <th>원본파일</th>
+            </tr>
+          </thead>
+          <tbody id="washcardBody"></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -323,7 +364,7 @@ tr:hover td{background:#fafafa}
 const SUPABASE_URL="https://cubbhtzyrpksqsmisqur.supabase.co";
 const SUPABASE_KEY="sb_publishable_ZGbtzVP2L8O9WZ72VUCG_Q_R_b8yQX-";
 const HOLIDAYS=new Set(["2020-01-01", "2020-01-24", "2020-01-25", "2020-01-26", "2020-01-27", "2020-03-01", "2020-04-15", "2020-04-30", "2020-05-05", "2020-06-06", "2020-08-15", "2020-08-17", "2020-09-30", "2020-10-01", "2020-10-02", "2020-10-03", "2020-10-09", "2020-12-25", "2021-01-01", "2021-02-11", "2021-02-12", "2021-02-13", "2021-03-01", "2021-05-05", "2021-05-19", "2021-06-06", "2021-08-15", "2021-08-16", "2021-09-20", "2021-09-21", "2021-09-22", "2021-10-03", "2021-10-04", "2021-10-09", "2021-10-11", "2021-12-25", "2022-01-01", "2022-01-31", "2022-02-01", "2022-02-02", "2022-03-01", "2022-03-09", "2022-05-05", "2022-05-08", "2022-06-01", "2022-06-06", "2022-08-15", "2022-09-09", "2022-09-10", "2022-09-11", "2022-09-12", "2022-10-03", "2022-10-09", "2022-10-10", "2022-12-25", "2023-01-01", "2023-01-21", "2023-01-22", "2023-01-23", "2023-01-24", "2023-03-01", "2023-05-05", "2023-05-27", "2023-05-29", "2023-06-06", "2023-08-15", "2023-09-28", "2023-09-29", "2023-09-30", "2023-10-02", "2023-10-03", "2023-10-09", "2023-12-25", "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", "2024-04-10", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-01", "2024-10-03", "2024-10-09", "2024-12-25", "2025-01-01", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01", "2025-03-03", "2025-05-05", "2025-05-06", "2025-06-03", "2025-06-06", "2025-08-15", "2025-10-03", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-12-25", "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01", "2026-03-02", "2026-05-01", "2026-05-05", "2026-05-24", "2026-05-25", "2026-06-03", "2026-06-06", "2026-07-17", "2026-08-15", "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03", "2026-10-05", "2026-10-09", "2026-12-25", "2027-01-01", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-03-01", "2027-05-01", "2027-05-03", "2027-05-05", "2027-05-13", "2027-06-06", "2027-07-17", "2027-07-19", "2027-08-15", "2027-08-16", "2027-09-14", "2027-09-15", "2027-09-16", "2027-10-03", "2027-10-04", "2027-10-09", "2027-10-11", "2027-12-25", "2027-12-27", "2028-01-01", "2028-01-26", "2028-01-27", "2028-01-28", "2028-03-01", "2028-04-12", "2028-05-01", "2028-05-02", "2028-05-05", "2028-06-06", "2028-07-17", "2028-08-15", "2028-10-02", "2028-10-03", "2028-10-04", "2028-10-05", "2028-10-09", "2028-12-25", "2029-01-01", "2029-02-12", "2029-02-13", "2029-02-14", "2029-03-01", "2029-05-01", "2029-05-05", "2029-05-07", "2029-05-20", "2029-05-21", "2029-06-06", "2029-07-17", "2029-08-15", "2029-09-21", "2029-09-22", "2029-09-23", "2029-09-24", "2029-10-03", "2029-10-09", "2029-12-25", "2030-01-01", "2030-02-02", "2030-02-03", "2030-02-04", "2030-02-05", "2030-03-01", "2030-04-03", "2030-05-01", "2030-05-05", "2030-05-06", "2030-05-09", "2030-06-06", "2030-06-12", "2030-07-17", "2030-08-15", "2030-09-11", "2030-09-12", "2030-09-13", "2030-10-03", "2030-10-09", "2030-12-25", "2031-01-01", "2031-01-22", "2031-01-23", "2031-01-24", "2031-03-01", "2031-03-03", "2031-05-01", "2031-05-05", "2031-05-28", "2031-06-06", "2031-07-17", "2031-08-15", "2031-09-30", "2031-10-01", "2031-10-02", "2031-10-03", "2031-10-09", "2031-12-25", "2032-01-01", "2032-02-10", "2032-02-11", "2032-02-12", "2032-03-01", "2032-04-14", "2032-05-01", "2032-05-03", "2032-05-05", "2032-05-16", "2032-05-17", "2032-06-06", "2032-07-17", "2032-07-19", "2032-08-15", "2032-08-16", "2032-09-18", "2032-09-19", "2032-09-20", "2032-09-21", "2032-10-03", "2032-10-04", "2032-10-09", "2032-10-11", "2032-12-25", "2032-12-27", "2033-01-01", "2033-01-30", "2033-01-31", "2033-02-01", "2033-02-02", "2033-03-01", "2033-05-01", "2033-05-02", "2033-05-05", "2033-05-06", "2033-06-06", "2033-07-17", "2033-07-18", "2033-08-15", "2033-09-07", "2033-09-08", "2033-09-09", "2033-10-03", "2033-10-09", "2033-10-10", "2033-12-25", "2033-12-26", "2034-01-01", "2034-02-18", "2034-02-19", "2034-02-20", "2034-02-21", "2034-03-01", "2034-05-01", "2034-05-05", "2034-05-25", "2034-06-06", "2034-06-14", "2034-07-17", "2034-08-15", "2034-09-26", "2034-09-27", "2034-09-28", "2034-10-03", "2034-10-09", "2034-12-25", "2035-01-01", "2035-02-07", "2035-02-08", "2035-02-09", "2035-03-01", "2035-04-04", "2035-05-01", "2035-05-05", "2035-05-07", "2035-05-15", "2035-06-06", "2035-07-17", "2035-08-15", "2035-09-15", "2035-09-16", "2035-09-17", "2035-09-18", "2035-10-03", "2035-10-09", "2035-12-25", "2036-01-01", "2036-01-27", "2036-01-28", "2036-01-29", "2036-01-30", "2036-03-01", "2036-03-03", "2036-04-09", "2036-05-01", "2036-05-03", "2036-05-05", "2036-05-06", "2036-06-06", "2036-07-17", "2036-08-15", "2036-10-03", "2036-10-04", "2036-10-05", "2036-10-06", "2036-10-07", "2036-10-09", "2036-12-25"]);
-const BUILD_TIME="2026-08-23T21:19:28";
+const BUILD_TIME="2026-08-23T23:26:01";
 const $=id=>document.getElementById(id);
 const num=n=>Number(n)||0;
 const won=n=>num(n).toLocaleString('ko-KR')+'원';
@@ -332,6 +373,7 @@ let session=null;
 let dailyRows=[],manualRows=[],supplyItems=[],supplyRows=[],days={},manualByDate={};
 let now=new Date(),dailyDate='',year=now.getFullYear(),month=now.getMonth(),annualYear=year,supplyYear=year,supplyMonth=month;
 let editingManualKey=null,editingSupplyKey=null,lastLoadAt=0;
+let washcardRows=[],washcardSortDesc=true;
 
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function parseDate(k){return new Date(k+'T00:00:00')}
@@ -382,11 +424,11 @@ async function loadData(){
 }
 
 function activate(name){
-  const views={daily:'dailyView',month:'monthView',year:'yearView',supply:'supplyView'};
-  const tabs={daily:'dailyTab',month:'monthTab',year:'yearTab',supply:'supplyTab'};
+  const views={daily:'dailyView',month:'monthView',year:'yearView',supply:'supplyView',washcard:'washcardView'};
+  const tabs={daily:'dailyTab',month:'monthTab',year:'yearTab',supply:'supplyTab',washcard:'washcardTab'};
   for(const k in views)$(views[k]).classList.toggle('hidden',k!==name);
   for(const k in tabs)$(tabs[k]).classList.toggle('active',k===name);
-  if(name==='daily')renderDaily();else if(name==='month')renderMonth();else if(name==='year')renderYear();else renderSupply();
+  if(name==='daily')renderDaily();else if(name==='month')renderMonth();else if(name==='year')renderYear();else if(name==='supply')renderSupply();else renderWashcard();
 }
 
 function moveDaily(delta){
@@ -406,11 +448,12 @@ function renderDaily(){
   $('manualWrap').classList.toggle('hidden',list.length===0);
   $('manualBody').innerHTML=list.map(x=>`<tr>
     <td>${esc(x.event_time||'')}</td><td class="num">${won(x.charge_amount)}</td>
-    <td class="num">${x.sales_amount==null?'미입력':won(x.sales_amount)}</td><td>${esc(x.card_no||'')}</td><td>${esc(x.machine||'')}</td>
+    <td class="num">${x.sales_amount==null?'미입력':won(x.sales_amount)}</td><td>${x.card_no?`<button class="card-link manual-card-link" data-card="${esc(x.card_no)}">${esc(x.card_no)}</button>`:''}</td><td>${esc(x.machine||'')}</td>
     <td><span class="tag ${esc(x.decision||'pending')}">${labels[x.decision]||esc(x.decision||'')}</span></td><td>${esc(x.payment_method||'')}</td>
     <td class="comment">${esc(x.comment||'')}</td>${session?.role==='admin'?`<td><button class="edit-btn manual-edit" data-key="${esc(x.transaction_key)}">수정</button></td>`:''}
   </tr>`).join('');
   document.querySelectorAll('.manual-edit').forEach(b=>b.onclick=()=>openManualEdit(b.dataset.key));
+  document.querySelectorAll('.manual-card-link').forEach(b=>b.onclick=()=>openWashcardFromCard(b.dataset.card));
 }
 
 function renderMonth(){
@@ -588,6 +631,86 @@ async function saveManual(){
   try{await apiWrite('PATCH','uwash_manual_charge?transaction_key=eq.'+encodeURIComponent(editingManualKey),{decision,payment_method:decision==='record'?method:null,sales_amount:decision==='record'?sales:null,comment,local_updated_at:new Date().toISOString()});await recalcDaily(r.sale_date);closeManual();await loadData();dailyDate=r.sale_date;renderDaily();setStatus('수동충전 수정값을 DB에 저장했습니다.')}catch(e){$('manualError').textContent='저장 실패: '+e.message}
 }
 
+function normalizeWashcard(value){
+  return String(value||'').replace(/[^0-9A-Za-z]/g,'').toUpperCase();
+}
+async function fetchWashcardRows(q){
+  const all=[],limit=1000;
+  for(let offset=0;;offset+=limit){
+    const p=new URLSearchParams({
+      select:'*',
+      order:'event_time.asc',
+      limit:String(limit),
+      offset:String(offset),
+      card_id:q.length>=8?`eq.${q}`:`ilike.*${q}*`
+    });
+    const chunk=await apiFetch('uwash_washcard_transactions?'+p.toString());
+    all.push(...chunk);
+    if(chunk.length<limit)break;
+  }
+  return all;
+}
+function renderWashcard(){
+  const rows=[...washcardRows].sort((a,b)=>{
+    const cmp=String(a.event_time||'').localeCompare(String(b.event_time||''));
+    return washcardSortDesc?-cmp:cmp;
+  });
+  $('washcardDateHead').textContent='거래일시 '+(washcardSortDesc?'▼':'▲');
+  $('washcardBody').innerHTML=rows.map(r=>`<tr>
+    <td>${esc(String(r.event_time||'').replace('T',' ').slice(0,19))}</td>
+    <td>${esc(r.terminal||'')}</td>
+    <td>${esc(r.event_type||'')}</td>
+    <td class="num">${won(r.amount)}</td>
+    <td class="num">${r.balance==null?'-':won(r.balance)}</td>
+    <td>${esc(r.card_id||'')}</td>
+    <td>${esc(r.terminal_ip||'')}</td>
+    <td>${esc(r.source_file_name||'')}</td>
+  </tr>`).join('');
+
+  $('washcardEmpty').classList.toggle('hidden',rows.length!==0);
+  if(!rows.length)return;
+
+  const chrono=[...rows].sort((a,b)=>String(a.event_time||'').localeCompare(String(b.event_time||'')));
+  let charge=0,use=0;
+  for(const r of chrono){
+    const kind=String(r.event_type||'').replace(/\s/g,'');
+    if(kind.includes('충전'))charge+=num(r.amount);
+    else if(kind.includes('지불')||kind.includes('사용'))use+=num(r.amount);
+  }
+  const cards=[...new Set(chrono.map(r=>r.card_id).filter(Boolean))];
+  const sources=new Set(chrono.map(r=>r.source_file_name).filter(Boolean)).size;
+  const first=String(chrono[0]?.event_time||'').replace('T',' ').slice(0,16);
+  const last=String(chrono.at(-1)?.event_time||'').replace('T',' ').slice(0,16);
+  const bal=chrono.at(-1)?.balance;
+  $('washcardSummary').textContent=
+    `카드 ${cards.slice(0,6).join(', ')}${cards.length>6?' ...':''}  |  `+
+    `전체 이력 ${chrono.length.toLocaleString()}건  |  `+
+    `원본파일 ${sources.toLocaleString()}개  |  `+
+    `충전 ${charge.toLocaleString()}원  |  사용 ${use.toLocaleString()}원  |  `+
+    `최근잔액 ${bal==null?'-':num(bal).toLocaleString()+'원'}  |  ${first} ~ ${last}`;
+}
+async function searchWashcard(){
+  const q=normalizeWashcard($('washcardQuery').value);
+  if(!q){$('washcardSummary').textContent='세차카드 번호를 입력하세요.';washcardRows=[];renderWashcard();return}
+  $('washcardSearchBtn').disabled=true;
+  $('washcardSummary').textContent=`${q} 카드 이력을 Supabase DB에서 조회 중...`;
+  try{
+    washcardRows=await fetchWashcardRows(q);
+    if(!washcardRows.length)$('washcardSummary').textContent=`${q}: 일치하는 세차카드 거래가 없습니다.`;
+    renderWashcard();
+    setStatus(`세차카드 DB 조회 완료 · ${washcardRows.length.toLocaleString()}건`);
+  }catch(e){
+    washcardRows=[];renderWashcard();
+    $('washcardSummary').textContent='세차카드 DB 조회 실패: '+e.message;
+    setStatus('세차카드 DB 조회 실패: '+e.message,true);
+  }finally{$('washcardSearchBtn').disabled=false}
+}
+function openWashcardFromCard(card){
+  $('washcardQuery').value=normalizeWashcard(card);
+  activate('washcard');
+  searchWashcard();
+}
+
 function boot(){
   $('email').value=localStorage.getItem('uwash_web_email')||'';
   try{session=JSON.parse(sessionStorage.getItem('uwash_web_session')||'null')}catch{session=null}
@@ -597,7 +720,8 @@ function boot(){
 }
 
 $('loginBtn').onclick=signIn;$('password').onkeydown=e=>{if(e.key==='Enter')signIn()};$('logoutBtn').onclick=logout;$('refreshBtn').onclick=loadData;
-$('dailyTab').onclick=()=>activate('daily');$('monthTab').onclick=()=>activate('month');$('yearTab').onclick=()=>activate('year');$('supplyTab').onclick=()=>activate('supply');
+$('dailyTab').onclick=()=>activate('daily');$('monthTab').onclick=()=>activate('month');$('yearTab').onclick=()=>activate('year');$('supplyTab').onclick=()=>activate('supply');$('washcardTab').onclick=()=>activate('washcard');
+$('washcardSearchBtn').onclick=searchWashcard;$('washcardQuery').onkeydown=e=>{if(e.key==='Enter')searchWashcard()};$('washcardClearBtn').onclick=()=>{$('washcardQuery').value='';washcardRows=[];$('washcardSummary').textContent='세차카드 번호를 입력하세요.';renderWashcard()};$('washcardDateHead').onclick=()=>{washcardSortDesc=!washcardSortDesc;renderWashcard()};
 $('prevDay').onclick=()=>moveDaily(-1);$('nextDay').onclick=()=>moveDaily(1);$('todayDay').onclick=()=>{dailyDate=dateKey(new Date());renderDaily()};
 $('prevMonth').onclick=()=>{month--;if(month<0){month=11;year--}renderMonth()};$('nextMonth').onclick=()=>{month++;if(month>11){month=0;year++}renderMonth()};$('thisMonth').onclick=()=>{const d=new Date();year=d.getFullYear();month=d.getMonth();renderMonth()};
 $('prevYear').onclick=()=>{annualYear--;renderYear()};$('nextYear').onclick=()=>{annualYear++;renderYear()};$('thisYear').onclick=()=>{annualYear=new Date().getFullYear();renderYear()};
