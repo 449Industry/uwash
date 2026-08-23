@@ -6,202 +6,514 @@
 <meta name="color-scheme" content="light">
 <title>유워시 매출결산</title>
 <style>
-:root{--bg:#f2f3f5;--panel:#fff;--line:#c8cbd0;--text:#111;--muted:#666;--danger:#c00020;--weekend:#c00000}
-*{box-sizing:border-box} html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:"Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
-button,input{font:inherit} button{cursor:pointer}.hidden{display:none!important}
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.login-card{width:min(430px,100%);background:#fff;border:1px solid var(--line);padding:28px;box-shadow:0 12px 35px #00000012}
-.login-card h1{margin:0 0 6px;font-size:27px}.login-card .sub{color:var(--muted);font-size:13px;margin-bottom:22px}
-.field{margin:10px 0}.field label{display:block;font-size:13px;margin-bottom:5px;color:#333}.field input{width:100%;padding:11px 12px;border:1px solid #aaa}
-.login-card button{width:100%;padding:12px;margin-top:10px;font-weight:700}.error{color:var(--danger);min-height:24px;margin-top:10px;font-size:13px}
-.shell{max-width:1240px;margin:0 auto;padding:12px}.topbar{display:flex;align-items:center;gap:12px;padding:8px 4px 10px}
-.topbar h1{font-size:22px;margin:0}.version{color:#777;font-size:12px}.spacer{flex:1}.today{font-size:13px;color:#444;font-weight:700}.small{font-size:12px;color:var(--muted)}
-.top-actions{display:flex;gap:6px;align-items:center}.top-actions button,.nav button,.toolbar button,.detail-actions button{padding:7px 12px;border:1px solid #aaa;background:#f7f7f7}
-.nav{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:8px}.nav button{border-bottom:0;background:#e9eaec}.nav button.active{background:#fff;font-weight:700;position:relative;top:1px}
-.statusbar{position:sticky;bottom:0;background:#f7f7f7;border-top:1px solid var(--line);padding:7px 12px;color:#555;font-size:12px;z-index:20}
-.toolbar{display:flex;align-items:center;gap:7px;margin:8px 0}.title{font-size:23px;font-weight:700;min-width:180px;text-align:center}.total-link{margin-left:auto;font-weight:700}
-.panel{background:#fff;border:1px solid var(--line);padding:8px}.weekdays,.calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.weekdays div{text-align:center;font-weight:700;padding:6px}.weekdays .weekend{color:var(--weekend)}.calendar{grid-template-rows:repeat(6,112px)}
-.day{position:relative;border:1px solid #c9c9c9;background:#fff;padding:7px;text-align:left;overflow:hidden}.day.empty{background:#eee;cursor:default}.day.today{outline:2px solid #222}
-.day .n{position:absolute;top:7px;left:7px;font-size:16px}.day.weekend .n,.day.holiday .n{color:var(--weekend)}.day .values{margin-top:24px;line-height:1.45;font-size:14px}.day .sales{font-size:16px;font-weight:700}
-.pending{color:var(--danger);font-weight:700}.day.has-data:hover{outline:2px solid #777}.detail-actions{display:flex;gap:7px;margin:8px 0}
-.summary-box{background:#fff;border:1px solid #222}.summary{width:100%;border-collapse:collapse}.summary th,.summary td{border:1px solid #333;padding:12px 14px}.summary .main-title th{text-align:left;font-size:24px;padding:16px}.summary .total td{font-weight:700;font-size:20px}.summary td:last-child{text-align:right}
-.breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.metric{background:#fff;border:1px solid var(--line);padding:12px}.metric .label{color:#555;font-size:13px}.metric .value{font-size:18px;font-weight:700;margin-top:4px}
-.section-title{font-size:18px;margin:20px 0 7px}.data-table{width:100%;border-collapse:collapse;background:#fff}.data-table th,.data-table td{border:1px solid #888;padding:8px;font-size:13px}.data-table th{background:#eee}.data-table td.num{text-align:right}
-.year-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.month-card{background:#fff;border:1px solid var(--line);padding:15px;text-align:left;min-height:170px}.month-card:hover{outline:2px solid #777}.month-card.current{outline:2px solid #222}.month-card .month{font-size:21px;font-weight:700}.month-card .sales{font-size:19px;font-weight:700;margin-top:20px}.month-card .row{margin-top:7px}.month-card .muted{color:#666;font-size:12px;margin-top:12px}
-.readonly{background:#fff8d9;border:1px solid #dcc46a;padding:8px 10px;font-size:12px;margin:6px 0 9px}.edit-btn{padding:4px 8px;border:1px solid #888;background:#f6f6f6}.modal-bg{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:100}.modal{width:min(480px,calc(100% - 24px));background:#fff;border:1px solid #444;padding:20px;box-shadow:0 15px 50px #0006}.modal h2{margin:0 0 14px}.modal .field{margin:9px 0}.modal select,.modal input,.modal textarea{width:100%;padding:9px;border:1px solid #999;font:inherit}.modal textarea{min-height:85px;resize:vertical}.modal-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:14px}
-@media(max-width:800px){.shell{padding:6px}.topbar{flex-wrap:wrap}.top-actions{width:100%}.today{display:none}.calendar{grid-template-rows:repeat(6,88px)}.day .values{font-size:11px}.day .sales{font-size:13px}.year-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.breakdown{grid-template-columns:1fr}}
-@page{size:A4 portrait;margin:14mm}@media print{.topbar,.nav,.toolbar,.detail-actions,.readonly,.statusbar{display:none!important}body{background:#fff}.shell{max-width:none;padding:0}.panel{border:0}}
+:root{
+  --red:#e1251b;
+  --red-dark:#b51610;
+  --black:#111111;
+  --white:#ffffff;
+  --bg:#f3f3f3;
+  --line:#d5d5d5;
+  --muted:#6b6b6b;
+  --soft:#fafafa;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:"Malgun Gothic","Apple SD Gothic Neo",Arial,sans-serif;background:var(--bg);color:var(--black)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.top-strip{height:6px;background:var(--red)}
+.login-page{min-height:calc(100vh - 6px);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:min(430px,100%);background:#fff;border-top:6px solid var(--red);padding:30px;box-shadow:0 18px 50px #0002}
+.brand{display:flex;align-items:center;gap:11px;margin-bottom:5px}
+.brand-mark{width:34px;height:34px;border-radius:50%;background:var(--red);position:relative}
+.brand-mark:after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;right:-2px;top:9px}
+.brand h1{margin:0;font-size:27px;letter-spacing:-1px}
+.brand .uwash{color:var(--red)}
+.login-card .sub{font-size:13px;color:var(--muted);margin:6px 0 22px}
+.field{margin:10px 0}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:10px 11px;border:1px solid #aaa;background:#fff}
+.primary{border:0!important;background:var(--red)!important;color:#fff!important;font-weight:700}
+.primary:hover{background:var(--red-dark)!important}
+.login-card .primary{width:100%;padding:12px;margin-top:10px}
+.error{color:var(--red-dark);min-height:22px;font-size:12px;margin-top:9px}
+.shell{max-width:1320px;margin:0 auto;padding:0 14px 16px}
+.header{background:#fff;border-bottom:1px solid var(--line)}
+.header-inner{max-width:1320px;margin:0 auto;padding:13px 14px;display:flex;align-items:center;gap:14px}
+.header-title{font-size:22px;font-weight:800;letter-spacing:-.7px}
+.header-title .u{color:var(--red)}
+.header-meta{font-size:12px;color:var(--muted)}
+.spacer{flex:1}
+.header-actions{display:flex;align-items:center;gap:7px}
+.btn{border:1px solid #aaa;background:#fff;color:#111;padding:8px 12px}
+.btn:hover{border-color:#111}
+.role{font-size:12px;font-weight:700;color:#444}
+.nav-wrap{background:var(--black)}
+.nav{max-width:1320px;margin:0 auto;display:flex;padding:0 14px}
+.nav button{border:0;background:transparent;color:#bbb;padding:14px 22px;font-weight:700;border-bottom:4px solid transparent}
+.nav button:hover{color:#fff}
+.nav button.active{color:#fff;border-bottom-color:var(--red)}
+.notice{background:#fff;border-left:4px solid var(--red);padding:9px 12px;margin:12px 0;font-size:12px;color:#444}
+.toolbar{display:flex;align-items:center;gap:7px;margin:12px 0}
+.toolbar .title{font-size:23px;font-weight:800;min-width:175px;text-align:center}
+.toolbar .summary{margin-left:auto;font-size:14px;font-weight:800}
+.card{background:#fff;border:1px solid var(--line)}
+.weekdays,.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.weekdays{padding:8px 8px 3px}
+.weekdays div{text-align:center;font-size:13px;font-weight:800;padding:5px}
+.weekend{color:var(--red)}
+.calendar-grid{padding:4px 8px 8px;grid-auto-rows:132px}
+.day{position:relative;border:1px solid #ddd;background:#fff;text-align:left;padding:8px;min-width:0;overflow:hidden}
+.day:hover{border-color:#333}
+.day.empty{background:#f0f0f0;cursor:default}
+.day.today{box-shadow:inset 0 0 0 2px var(--black)}
+.day .number{font-size:14px;margin-bottom:8px}
+.day.red-day .number{color:var(--red)}
+.day .sales{font-size:16px;font-weight:800;margin-bottom:4px}
+.day .line{font-size:12px;line-height:1.55;color:#333}
+.day .pending{position:absolute;left:8px;bottom:7px;background:var(--red);color:#fff;padding:3px 7px;font-size:11px;font-weight:800;border-radius:10px}
+.day .partial{position:absolute;right:7px;bottom:7px;color:#8a5a00;font-size:10px;font-weight:700}
+.section{margin-top:12px}
+.daily-head{display:grid;grid-template-columns:1.5fr repeat(3,1fr);border-bottom:4px solid var(--red)}
+.metric{background:#fff;padding:18px;border:1px solid var(--line);border-bottom:0}
+.metric:first-child{border-left:1px solid var(--line)}
+.metric .label{font-size:12px;color:var(--muted);font-weight:700}
+.metric .value{font-size:24px;font-weight:900;margin-top:6px}
+.metric.main .value{color:var(--red);font-size:30px}
+.breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.small-metric{background:#fff;border:1px solid var(--line);padding:13px}
+.small-metric .label{font-size:11px;color:#666}
+.small-metric .value{font-size:17px;font-weight:800;margin-top:4px}
+.section-title{display:flex;align-items:center;gap:8px;margin:18px 0 7px;font-size:17px;font-weight:900}
+.section-title:before{content:"";width:5px;height:18px;background:var(--red)}
+.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 10px;border-bottom:1px solid #e1e1e1;font-size:12px;white-space:nowrap}
+th{background:#171717;color:#fff;text-align:center}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.comment{white-space:normal;min-width:220px}
+tr:hover td{background:#fafafa}
+.tag{display:inline-block;padding:3px 7px;border-radius:10px;font-size:10px;font-weight:800}
+.tag.pending{background:#fee;color:var(--red-dark)}
+.tag.record{background:#111;color:#fff}
+.tag.ignore{background:#eee;color:#555}
+.edit-btn{border:1px solid #888;background:#fff;padding:4px 8px}
+.year-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.month-card{background:#fff;border:1px solid var(--line);border-top:4px solid #111;padding:15px;text-align:left;min-height:170px}
+.month-card:hover{border-top-color:var(--red);transform:translateY(-1px)}
+.month-card.current{border-top-color:var(--red)}
+.month-card .month{font-size:20px;font-weight:900}
+.month-card .sales{font-size:20px;font-weight:900;color:var(--red);margin:18px 0 10px}
+.month-card .row{font-size:12px;margin-top:6px}.month-card .muted{font-size:11px;color:#777;margin-top:13px}
+.supply-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:12px}
+.supply-form{background:#fff;border:1px solid var(--line);border-top:4px solid var(--red);padding:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1.2fr .8fr .8fr;gap:8px}
+.form-grid .wide{grid-column:span 3}
+.form-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
+.supply-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px 0}
+.supply-summary .box{background:#fff;border:1px solid var(--line);padding:11px}
+.supply-summary .box .k{font-size:11px;color:#666}.supply-summary .box .v{font-size:17px;font-weight:900;margin-top:3px}
+.master-box{background:#fff;border:1px solid var(--line);padding:12px}
+.master-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.master-pill{border:1px solid #bbb;padding:6px 8px;font-size:11px;background:#fff}
+.master-pill.off{color:#aaa;text-decoration:line-through;background:#f3f3f3}
+.statusbar{position:sticky;bottom:0;background:#111;color:#ddd;padding:7px 12px;font-size:11px;z-index:30;border-top:3px solid var(--red)}
+.modal-bg{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:100}
+.modal{width:min(500px,calc(100% - 24px));background:#fff;border-top:6px solid var(--red);padding:20px;box-shadow:0 18px 60px #0008}
+.modal h2{margin:0 0 12px}.modal textarea{min-height:80px;resize:vertical}
+.modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:12px}
+@media(max-width:900px){
+  .daily-head{grid-template-columns:1fr 1fr}.breakdown{grid-template-columns:1fr 1fr}
+  .year-grid{grid-template-columns:repeat(2,1fr)}.supply-layout{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr 1fr}
+  .form-grid .wide{grid-column:span 2}.calendar-grid{grid-auto-rows:116px}.day .sales{font-size:13px}.day .line{font-size:10px}
+}
+@media(max-width:620px){
+  .header-inner{flex-wrap:wrap}.header-actions{width:100%}.nav button{padding:11px 12px;font-size:12px}
+  .toolbar{flex-wrap:wrap}.toolbar .summary{width:100%;margin-left:0}
+  .calendar-grid{grid-auto-rows:96px}.day{padding:5px}.day .line{display:none}.day .sales{font-size:11px}.day .pending{font-size:9px;left:5px;bottom:5px}
+  .daily-head,.breakdown,.supply-summary{grid-template-columns:1fr 1fr}.year-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}
+}
+@page{size:A4 portrait;margin:12mm}
+@media print{.header,.nav-wrap,.toolbar,.notice,.form-actions,.statusbar,.edit-btn{display:none!important}.shell{max-width:none;padding:0}.card,.table-wrap{border-color:#333}}
 </style>
 </head>
 <body>
-<section id="loginPage" class="login-page"><div class="login-card">
-<h1>유워시 매출결산</h1><div class="sub">Supabase 매출 DB 로그인</div>
-<div class="field"><label>관리자 이메일</label><input id="email" type="email" autocomplete="username"></div>
-<div class="field"><label>비밀번호</label><input id="password" type="password" autocomplete="current-password"></div>
-<button id="loginBtn">로그인</button><div id="loginError" class="error"></div>
-</div></section>
+<div class="top-strip"></div>
 
-<main id="app" class="shell hidden">
-<div class="topbar"><h1>유워시 매출결산</h1><span class="version">WEB DB</span><span id="todayText" class="today"></span><div class="spacer"></div><span id="roleText" class="small"></span>
-<div class="top-actions"><button id="refreshBtn">DB 새로고침</button><button id="logoutBtn">로그아웃</button></div></div>
-<div class="readonly">Supabase DB 직접조회 · 관리자는 수동충전 확인값을 웹에서도 수정할 수 있습니다.</div>
-<div class="nav"><button id="monthTab" class="active">월매출</button><button id="yearTab">연매출</button></div>
-
-<section id="monthView">
-<div class="toolbar"><button id="prevMonth">◀</button><div id="monthTitle" class="title"></div><button id="nextMonth">▶</button><button id="thisMonth">이번 달</button><div id="monthTotal" class="total-link"></div></div>
-<div class="panel"><div class="weekdays"><div class="weekend">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="weekend">토</div></div><div id="calendar" class="calendar"></div></div>
+<section id="loginPage" class="login-page">
+  <div class="login-card">
+    <div class="brand"><div class="brand-mark"></div><h1><span class="uwash">UWASH</span> 매출결산</h1></div>
+    <div class="sub">Supabase 매출 DB 관리자 로그인</div>
+    <div class="field"><label>이메일</label><input id="email" type="email" autocomplete="username"></div>
+    <div class="field"><label>비밀번호</label><input id="password" type="password" autocomplete="current-password"></div>
+    <button id="loginBtn" class="btn primary">로그인</button>
+    <div id="loginError" class="error"></div>
+  </div>
 </section>
 
-<section id="detailView" class="hidden">
-<div class="detail-actions"><button id="backMonth">달력으로</button><button id="prevDay">◀ 이전 날짜</button><button id="nextDay">다음 날짜 ▶</button><div class="spacer"></div><button onclick="window.print()">인쇄</button></div>
-<div class="summary-box"><table class="summary"><tr class="main-title"><th colspan="2" id="detailTitle"></th></tr><tr class="total"><td>총매출</td><td id="detailTotal"></td></tr><tr><td>현금/계좌 합계</td><td id="detailCash"></td></tr><tr><td>카드 합계</td><td id="detailCard"></td></tr></table></div>
-<div class="breakdown">
-<div class="metric"><div class="label">충전(무인)</div><div id="unattended" class="value"></div></div>
-<div class="metric"><div class="label">수동 현금</div><div id="manualCash" class="value"></div></div>
-<div class="metric"><div class="label">수동 계좌</div><div id="manualAccount" class="value"></div></div>
-<div class="metric"><div class="label">EasyShop 카드</div><div id="cardSales" class="value"></div></div>
-<div class="metric"><div class="label">수동 카드</div><div id="manualCard" class="value"></div></div>
-<div class="metric"><div class="label">카드 승인건수</div><div id="cardCount" class="value"></div></div>
+<div id="app" class="hidden">
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-title"><span class="u">UWASH</span> 매출결산</div>
+      <span class="header-meta">WEB DB · <span id="todayText"></span></span>
+      <div class="spacer"></div>
+      <span id="roleText" class="role"></span>
+      <div class="header-actions">
+        <button id="refreshBtn" class="btn">DB 새로고침</button>
+        <button id="logoutBtn" class="btn">로그아웃</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="nav-wrap">
+    <nav class="nav">
+      <button id="dailyTab" class="active">일매출</button>
+      <button id="monthTab">월매출</button>
+      <button id="yearTab">연매출</button>
+      <button id="supplyTab">세차용품</button>
+    </nav>
+  </div>
+
+  <main class="shell">
+    <div class="notice">PC와 웹은 Supabase DB를 함께 사용합니다. 세차용품 장부는 현재 기존 총매출에 자동 합산하지 않습니다.</div>
+
+    <section id="dailyView">
+      <div class="toolbar">
+        <button id="prevDay" class="btn">◀</button>
+        <div id="dailyTitle" class="title"></div>
+        <button id="nextDay" class="btn">▶</button>
+        <button id="todayDay" class="btn">오늘</button>
+        <div class="summary" id="dailyState"></div>
+      </div>
+      <div id="dailyEmpty" class="card hidden" style="padding:35px;text-align:center;color:#777">해당 날짜의 집계 매출이 없습니다.</div>
+      <div id="dailyContent">
+        <div class="daily-head">
+          <div class="metric main"><div class="label">총매출</div><div id="dTotal" class="value"></div></div>
+          <div class="metric"><div class="label">현금/계좌</div><div id="dCash" class="value"></div></div>
+          <div class="metric"><div class="label">카드</div><div id="dCard" class="value"></div></div>
+          <div class="metric"><div class="label">미확인 수동충전</div><div id="dPending" class="value"></div></div>
+        </div>
+        <div class="breakdown">
+          <div class="small-metric"><div class="label">충전(무인)</div><div id="dUnattended" class="value"></div></div>
+          <div class="small-metric"><div class="label">수동 현금</div><div id="dManualCash" class="value"></div></div>
+          <div class="small-metric"><div class="label">수동 계좌</div><div id="dManualAccount" class="value"></div></div>
+          <div class="small-metric"><div class="label">EasyShop 카드</div><div id="dCardSales" class="value"></div></div>
+          <div class="small-metric"><div class="label">수동 카드</div><div id="dManualCard" class="value"></div></div>
+          <div class="small-metric"><div class="label">카드 승인건수</div><div id="dCardCount" class="value"></div></div>
+        </div>
+        <div id="manualWrap">
+          <div class="section-title">충전(수동) 내역</div>
+          <div class="table-wrap"><table>
+            <thead><tr><th>시간</th><th>충전금액</th><th>실수납</th><th>카드번호</th><th>기기</th><th>처리</th><th>결제수단</th><th>코멘트</th><th id="manualEditHead">수정</th></tr></thead>
+            <tbody id="manualBody"></tbody>
+          </table></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="monthView" class="hidden">
+      <div class="toolbar">
+        <button id="prevMonth" class="btn">◀</button>
+        <div id="monthTitle" class="title"></div>
+        <button id="nextMonth" class="btn">▶</button>
+        <button id="thisMonth" class="btn">이번 달</button>
+        <div id="monthTotal" class="summary"></div>
+      </div>
+      <div class="card">
+        <div class="weekdays"><div class="weekend">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="weekend">토</div></div>
+        <div id="calendar" class="calendar-grid"></div>
+      </div>
+    </section>
+
+    <section id="yearView" class="hidden">
+      <div class="toolbar">
+        <button id="prevYear" class="btn">◀</button>
+        <div id="yearTitle" class="title"></div>
+        <button id="nextYear" class="btn">▶</button>
+        <button id="thisYear" class="btn">올해</button>
+        <div id="yearTotal" class="summary"></div>
+      </div>
+      <div id="yearGrid" class="year-grid"></div>
+    </section>
+
+    <section id="supplyView" class="hidden">
+      <div class="toolbar">
+        <button id="prevSupplyMonth" class="btn">◀</button>
+        <div id="supplyMonthTitle" class="title"></div>
+        <button id="nextSupplyMonth" class="btn">▶</button>
+        <button id="thisSupplyMonth" class="btn">이번 달</button>
+        <div id="supplyTotalLine" class="summary"></div>
+      </div>
+
+      <div class="supply-layout">
+        <div>
+          <div id="supplyAdminForm" class="supply-form">
+            <div class="section-title" style="margin-top:0">세차용품 판매 기록</div>
+            <div class="form-grid">
+              <div class="field"><label>날짜</label><input id="supplyDate" type="date"></div>
+              <div class="field"><label>기본항목</label><select id="supplyItem"></select></div>
+              <div class="field"><label>결제수단</label><select id="supplyMethod"><option>현금</option><option>계좌</option><option>카드</option></select></div>
+              <div class="field"><label>금액</label><input id="supplyAmount" inputmode="numeric" placeholder="0"></div>
+              <div class="field wide"><label>물품/코멘트</label><input id="supplyComment" placeholder="예: 세차타월 2개"></div>
+            </div>
+            <div id="supplyError" class="error"></div>
+            <div class="form-actions">
+              <button id="newSupply" class="btn">신규</button>
+              
+              <button id="saveSupply" class="btn primary">저장</button>
+            </div>
+          </div>
+
+          <div class="supply-summary">
+            <div class="box"><div class="k">장부 합계</div><div id="sTotal" class="v"></div></div>
+            <div class="box"><div class="k">현금</div><div id="sCash" class="v"></div></div>
+            <div class="box"><div class="k">계좌</div><div id="sAccount" class="v"></div></div>
+            <div class="box"><div class="k">카드</div><div id="sCard" class="v"></div></div>
+          </div>
+
+          <div class="table-wrap"><table>
+            <thead><tr><th>날짜</th><th>기본항목</th><th>결제수단</th><th>금액</th><th>물품/코멘트</th><th id="supplyEditHead">수정</th></tr></thead>
+            <tbody id="supplyBody"></tbody>
+          </table></div>
+        </div>
+
+        <aside class="master-box">
+          <div class="section-title" style="margin-top:0">기본항목 테이블</div>
+          <div style="font-size:11px;color:#666">웹에서는 항목 등록/이름수정을 하지 않습니다. PC 프로그램에서 관리한 목록을 읽습니다.</div>
+          <div id="masterList" class="master-list"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
 </div>
-<div id="manualWrap" class="hidden"><h2 class="section-title">충전(수동) 내역</h2><table class="data-table"><thead><tr><th>시간</th><th>충전금액</th><th>실수납</th><th>카드번호</th><th>기기</th><th>처리</th><th>결제수단</th><th>코멘트</th><th id="editHead">수정</th></tr></thead><tbody id="manualBody"></tbody></table></div>
-</section>
 
-<section id="yearView" class="hidden">
-<div class="toolbar"><button id="prevYear">◀</button><div id="yearTitle" class="title"></div><button id="nextYear">▶</button><button id="thisYear">올해</button><div id="yearTotal" class="total-link"></div></div>
-<div id="yearGrid" class="year-grid"></div>
-</section>
-</main>
-<div id="editModal" class="modal-bg hidden">
-<div class="modal">
-<h2>수동충전 수정</h2>
-<div id="editMeta" class="small"></div>
-<div class="field"><label>처리</label><select id="editDecision"><option value="pending">미확인</option><option value="record">기록</option><option value="ignore">무시</option></select></div>
-<div class="field"><label>실제 수납금액</label><input id="editSalesAmount" inputmode="numeric"></div>
-<div class="field"><label>결제수단</label><select id="editMethod"><option value="">선택 안 함</option><option>현금</option><option>계좌</option><option>카드</option></select></div>
-<div class="field"><label>코멘트</label><textarea id="editComment"></textarea></div>
-<div id="editError" class="error"></div>
-<div class="modal-actions"><button id="cancelEdit">취소</button><button id="saveEdit">DB 저장</button></div>
-</div></div>
+<div id="manualModal" class="modal-bg hidden">
+  <div class="modal">
+    <h2>수동충전 수정</h2>
+    <div id="manualMeta" class="header-meta"></div>
+    <div class="field"><label>처리</label><select id="editDecision"><option value="pending">미확인</option><option value="record">기록</option><option value="ignore">무시</option></select></div>
+    <div class="field"><label>실제 수납금액</label><input id="editSalesAmount" inputmode="numeric"></div>
+    <div class="field"><label>결제수단</label><select id="editMethod"><option value="">선택 안 함</option><option>현금</option><option>계좌</option><option>카드</option></select></div>
+    <div class="field"><label>코멘트</label><textarea id="editComment"></textarea></div>
+    <div id="manualError" class="error"></div>
+    <div class="modal-actions"><button id="cancelManual" class="btn">취소</button><button id="saveManual" class="btn primary">DB 저장</button></div>
+  </div>
+</div>
+
 <div id="statusbar" class="statusbar hidden"></div>
 
 <script>
 const SUPABASE_URL="https://cubbhtzyrpksqsmisqur.supabase.co";
 const SUPABASE_KEY="sb_publishable_ZGbtzVP2L8O9WZ72VUCG_Q_R_b8yQX-";
 const HOLIDAYS=new Set(["2020-01-01", "2020-01-24", "2020-01-25", "2020-01-26", "2020-01-27", "2020-03-01", "2020-04-15", "2020-04-30", "2020-05-05", "2020-06-06", "2020-08-15", "2020-08-17", "2020-09-30", "2020-10-01", "2020-10-02", "2020-10-03", "2020-10-09", "2020-12-25", "2021-01-01", "2021-02-11", "2021-02-12", "2021-02-13", "2021-03-01", "2021-05-05", "2021-05-19", "2021-06-06", "2021-08-15", "2021-08-16", "2021-09-20", "2021-09-21", "2021-09-22", "2021-10-03", "2021-10-04", "2021-10-09", "2021-10-11", "2021-12-25", "2022-01-01", "2022-01-31", "2022-02-01", "2022-02-02", "2022-03-01", "2022-03-09", "2022-05-05", "2022-05-08", "2022-06-01", "2022-06-06", "2022-08-15", "2022-09-09", "2022-09-10", "2022-09-11", "2022-09-12", "2022-10-03", "2022-10-09", "2022-10-10", "2022-12-25", "2023-01-01", "2023-01-21", "2023-01-22", "2023-01-23", "2023-01-24", "2023-03-01", "2023-05-05", "2023-05-27", "2023-05-29", "2023-06-06", "2023-08-15", "2023-09-28", "2023-09-29", "2023-09-30", "2023-10-02", "2023-10-03", "2023-10-09", "2023-12-25", "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", "2024-04-10", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-01", "2024-10-03", "2024-10-09", "2024-12-25", "2025-01-01", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01", "2025-03-03", "2025-05-05", "2025-05-06", "2025-06-03", "2025-06-06", "2025-08-15", "2025-10-03", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-12-25", "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01", "2026-03-02", "2026-05-01", "2026-05-05", "2026-05-24", "2026-05-25", "2026-06-03", "2026-06-06", "2026-07-17", "2026-08-15", "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03", "2026-10-05", "2026-10-09", "2026-12-25", "2027-01-01", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-03-01", "2027-05-01", "2027-05-03", "2027-05-05", "2027-05-13", "2027-06-06", "2027-07-17", "2027-07-19", "2027-08-15", "2027-08-16", "2027-09-14", "2027-09-15", "2027-09-16", "2027-10-03", "2027-10-04", "2027-10-09", "2027-10-11", "2027-12-25", "2027-12-27", "2028-01-01", "2028-01-26", "2028-01-27", "2028-01-28", "2028-03-01", "2028-04-12", "2028-05-01", "2028-05-02", "2028-05-05", "2028-06-06", "2028-07-17", "2028-08-15", "2028-10-02", "2028-10-03", "2028-10-04", "2028-10-05", "2028-10-09", "2028-12-25", "2029-01-01", "2029-02-12", "2029-02-13", "2029-02-14", "2029-03-01", "2029-05-01", "2029-05-05", "2029-05-07", "2029-05-20", "2029-05-21", "2029-06-06", "2029-07-17", "2029-08-15", "2029-09-21", "2029-09-22", "2029-09-23", "2029-09-24", "2029-10-03", "2029-10-09", "2029-12-25", "2030-01-01", "2030-02-02", "2030-02-03", "2030-02-04", "2030-02-05", "2030-03-01", "2030-04-03", "2030-05-01", "2030-05-05", "2030-05-06", "2030-05-09", "2030-06-06", "2030-06-12", "2030-07-17", "2030-08-15", "2030-09-11", "2030-09-12", "2030-09-13", "2030-10-03", "2030-10-09", "2030-12-25", "2031-01-01", "2031-01-22", "2031-01-23", "2031-01-24", "2031-03-01", "2031-03-03", "2031-05-01", "2031-05-05", "2031-05-28", "2031-06-06", "2031-07-17", "2031-08-15", "2031-09-30", "2031-10-01", "2031-10-02", "2031-10-03", "2031-10-09", "2031-12-25", "2032-01-01", "2032-02-10", "2032-02-11", "2032-02-12", "2032-03-01", "2032-04-14", "2032-05-01", "2032-05-03", "2032-05-05", "2032-05-16", "2032-05-17", "2032-06-06", "2032-07-17", "2032-07-19", "2032-08-15", "2032-08-16", "2032-09-18", "2032-09-19", "2032-09-20", "2032-09-21", "2032-10-03", "2032-10-04", "2032-10-09", "2032-10-11", "2032-12-25", "2032-12-27", "2033-01-01", "2033-01-30", "2033-01-31", "2033-02-01", "2033-02-02", "2033-03-01", "2033-05-01", "2033-05-02", "2033-05-05", "2033-05-06", "2033-06-06", "2033-07-17", "2033-07-18", "2033-08-15", "2033-09-07", "2033-09-08", "2033-09-09", "2033-10-03", "2033-10-09", "2033-10-10", "2033-12-25", "2033-12-26", "2034-01-01", "2034-02-18", "2034-02-19", "2034-02-20", "2034-02-21", "2034-03-01", "2034-05-01", "2034-05-05", "2034-05-25", "2034-06-06", "2034-06-14", "2034-07-17", "2034-08-15", "2034-09-26", "2034-09-27", "2034-09-28", "2034-10-03", "2034-10-09", "2034-12-25", "2035-01-01", "2035-02-07", "2035-02-08", "2035-02-09", "2035-03-01", "2035-04-04", "2035-05-01", "2035-05-05", "2035-05-07", "2035-05-15", "2035-06-06", "2035-07-17", "2035-08-15", "2035-09-15", "2035-09-16", "2035-09-17", "2035-09-18", "2035-10-03", "2035-10-09", "2035-12-25", "2036-01-01", "2036-01-27", "2036-01-28", "2036-01-29", "2036-01-30", "2036-03-01", "2036-03-03", "2036-04-09", "2036-05-01", "2036-05-03", "2036-05-05", "2036-05-06", "2036-06-06", "2036-07-17", "2036-08-15", "2036-10-03", "2036-10-04", "2036-10-05", "2036-10-06", "2036-10-07", "2036-10-09", "2036-12-25"]);
-const BUILD_TIME="2026-08-23T18:52:32";
+const BUILD_TIME="2026-08-23T20:51:52";
 const $=id=>document.getElementById(id);
-const won=n=>(Number(n)||0).toLocaleString('ko-KR')+'원';
 const num=n=>Number(n)||0;
+const won=n=>num(n).toLocaleString('ko-KR')+'원';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let session=null,dailyRows=[],manualRows=[],days={},manualByDate={};
-let current=new Date(),year=current.getFullYear(),month=current.getMonth(),annualYear=year,selected=null,lastLoadAt=0,editingKey=null;
+let session=null;
+let dailyRows=[],manualRows=[],supplyItems=[],supplyRows=[],days={},manualByDate={};
+let now=new Date(),dailyDate='',year=now.getFullYear(),month=now.getMonth(),annualYear=year,supplyYear=year,supplyMonth=month;
+let editingManualKey=null,editingSupplyKey=null,lastLoadAt=0;
 
-function setStatus(text,error=false){$('statusbar').textContent=text;$('statusbar').classList.remove('hidden');$('statusbar').style.color=error?'#b00020':'#555'}
+function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function parseDate(k){return new Date(k+'T00:00:00')}
+function setStatus(text,error=false){$('statusbar').textContent=text;$('statusbar').classList.remove('hidden');$('statusbar').style.color=error?'#ff8580':'#ddd'}
 function authHeaders(){return {'apikey':SUPABASE_KEY,'Authorization':'Bearer '+session.access_token,'Accept':'application/json'}}
 async function authRequest(path,body){const res=await fetch(SUPABASE_URL+path,{method:'POST',headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)});const text=await res.text();let data={};try{data=text?JSON.parse(text):{}}catch{data={message:text}}if(!res.ok)throw new Error(data.message||data.error_description||data.error||('HTTP '+res.status));return data}
-function saveSession(data,role){session={access_token:data.access_token,refresh_token:data.refresh_token,user_id:data.user?.id||session?.user_id||'',role:role||session?.role||''};sessionStorage.setItem('uwash_web_session',JSON.stringify(session))}
 async function getRole(userId){const q=new URLSearchParams({select:'role',user_id:'eq.'+userId});const res=await fetch(SUPABASE_URL+'/rest/v1/uwash_user_roles?'+q.toString(),{headers:authHeaders()});if(!res.ok)throw new Error('권한 조회 실패 HTTP '+res.status);const rows=await res.json();return rows[0]?.role||''}
-async function signIn(){ $('loginError').textContent='';const email=$('email').value.trim(),password=$('password').value;if(!email||!password){$('loginError').textContent='이메일과 비밀번호를 입력하세요.';return}try{const data=await authRequest('/auth/v1/token?grant_type=password',{email,password});session={access_token:data.access_token,refresh_token:data.refresh_token,user_id:data.user?.id||'',role:''};const role=await getRole(session.user_id);if(!['admin','viewer'].includes(role))throw new Error('UWash 조회 권한이 없습니다.');saveSession(data,role);localStorage.setItem('uwash_web_email',email);showApp();await loadData()}catch(e){$('loginError').textContent='로그인 실패: '+e.message}}
+async function signIn(){ $('loginError').textContent='';const email=$('email').value.trim(),password=$('password').value;if(!email||!password){$('loginError').textContent='이메일과 비밀번호를 입력하세요.';return}try{const data=await authRequest('/auth/v1/token?grant_type=password',{email,password});session={access_token:data.access_token,refresh_token:data.refresh_token,user_id:data.user?.id||'',role:''};session.role=await getRole(session.user_id);if(!['admin','viewer'].includes(session.role))throw new Error('UWash 조회 권한이 없습니다.');sessionStorage.setItem('uwash_web_session',JSON.stringify(session));localStorage.setItem('uwash_web_email',email);showApp();await loadData()}catch(e){$('loginError').textContent='로그인 실패: '+e.message}}
 async function refreshSession(){if(!session?.refresh_token)return false;try{const data=await authRequest('/auth/v1/token?grant_type=refresh_token',{refresh_token:session.refresh_token});session={...session,access_token:data.access_token,refresh_token:data.refresh_token||session.refresh_token,user_id:data.user?.id||session.user_id};sessionStorage.setItem('uwash_web_session',JSON.stringify(session));return true}catch{return false}}
 async function apiFetch(path,retry=true){let res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{headers:authHeaders()});if(res.status===401&&retry&&await refreshSession())return apiFetch(path,false);if(!res.ok){const t=await res.text();throw new Error('DB HTTP '+res.status+' '+t)}return res.json()}
-async function apiWrite(method,path,body){
-  let res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{
-    method,
-    headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=representation'},
-    body:JSON.stringify(body)
-  });
-  if(res.status===401&&await refreshSession()){
-    res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{
-      method,
-      headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(body)
-    });
-  }
-  if(!res.ok){const t=await res.text();throw new Error('DB 저장 HTTP '+res.status+' '+t)}
-  const t=await res.text();return t?JSON.parse(t):[];
-}
-async function recalcDaily(dateKey){
-  const q='uwash_manual_charge?select=decision,payment_method,sales_amount&sale_date=eq.'+encodeURIComponent(dateKey);
-  const manual=await apiFetch(q);
-  const daily=await apiFetch('uwash_daily_sales?select=*&sale_date=eq.'+encodeURIComponent(dateKey));
-  if(!daily.length)return;
-  let mc=0,ma=0,mcard=0,pending=0;
-  for(const r of manual){
-    if(r.decision==='pending')pending++;
-    if(r.decision!=='record')continue;
-    const value=num(r.sales_amount);
-    if(r.payment_method==='현금')mc+=value;
-    else if(r.payment_method==='계좌')ma+=value;
-    else if(r.payment_method==='카드')mcard+=value;
-  }
-  const d=daily[0],cash=num(d.unattended_cash)+mc+ma,card=num(d.card_sales)+mcard;
-  await apiWrite('PATCH','uwash_daily_sales?sale_date=eq.'+encodeURIComponent(dateKey),{
-    manual_cash:mc,manual_account:ma,manual_card:mcard,pending_count:pending,
-    cash_total:cash,card_total:card,total_sales:cash+card,
-    local_updated_at:new Date().toISOString()
-  });
-}
-function openManualEdit(key){
-  if(session?.role!=='admin')return;
-  const row=manualRows.find(x=>x.transaction_key===key);if(!row)return;
-  editingKey=key;
-  $('editMeta').textContent=`${row.sale_date} ${row.event_time||''} · 카드 ${row.card_no||'-'} · 충전 ${won(row.charge_amount)}`;
-  $('editDecision').value=row.decision||'pending';
-  $('editSalesAmount').value=row.sales_amount==null?'':String(row.sales_amount);
-  $('editMethod').value=row.payment_method||'';
-  $('editComment').value=row.comment||'';
-  $('editError').textContent='';
-  $('editModal').classList.remove('hidden');
-}
-function closeManualEdit(){editingKey=null;$('editModal').classList.add('hidden')}
-async function saveManualEdit(){
-  const row=manualRows.find(x=>x.transaction_key===editingKey);if(!row)return;
-  const decision=$('editDecision').value,method=$('editMethod').value,comment=$('editComment').value.trim();
-  const raw=$('editSalesAmount').value.replace(/[,원\s]/g,'');
-  let sales=null;
-  if(decision==='record'){
-    if(!['현금','계좌','카드'].includes(method)){$('editError').textContent='기록할 때는 결제수단을 선택하세요.';return}
-    if(!/^\d+$/.test(raw)){$('editError').textContent='실제 수납금액을 숫자로 입력하세요.';return}
-    sales=Number(raw);
-  }
-  if(decision==='ignore'&&!comment){$('editError').textContent='무시할 때는 코멘트에 사유를 입력하세요.';return}
-  const body={
-    decision,
-    payment_method:decision==='record'?method:null,
-    sales_amount:decision==='record'?sales:null,
-    comment,
-    local_updated_at:new Date().toISOString()
-  };
-  $('saveEdit').disabled=true;$('editError').textContent='저장 중...';
-  try{
-    await apiWrite('PATCH','uwash_manual_charge?transaction_key=eq.'+encodeURIComponent(editingKey),body);
-    await recalcDaily(row.sale_date);
-    closeManualEdit();
-    await loadData();
-    showDetail(row.sale_date);
-    setStatus('웹 수정값을 Supabase DB에 저장했습니다. PC는 다음 양방향 동기화 때 가져옵니다.');
-  }catch(e){$('editError').textContent='저장 실패: '+e.message}
-  finally{$('saveEdit').disabled=false}
-}
+async function apiWrite(method,path,body){let res=await fetch(SUPABASE_URL+'/rest/v1/'+path,{method,headers:{...authHeaders(),'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=representation'},body:body==null?null:JSON.stringify(body)});if(res.status===401&&await refreshSession())return apiWrite(method,path,body);if(!res.ok){const t=await res.text();throw new Error('DB 저장 HTTP '+res.status+' '+t)}const t=await res.text();return t?JSON.parse(t):[]}
 async function fetchAll(table,select,order){const all=[],limit=1000;for(let offset=0;;offset+=limit){const p=new URLSearchParams({select,order,limit:String(limit),offset:String(offset)});const rows=await apiFetch(table+'?'+p.toString());all.push(...rows);if(rows.length<limit)break}return all}
-async function loadData(){setStatus('Supabase DB에서 매출 데이터를 불러오는 중...');$('refreshBtn').disabled=true;try{const [d,m]=await Promise.all([fetchAll('uwash_daily_sales','*','sale_date.asc'),fetchAll('uwash_manual_charge','transaction_key,sale_date,event_time,charge_amount,sales_amount,card_no,machine,decision,payment_method,comment,local_updated_at,synced_at','sale_date.asc,event_time.asc')]);dailyRows=d;manualRows=m;days={};manualByDate={};for(const r of d)days[r.sale_date]=r;for(const r of m)(manualByDate[r.sale_date]??=[]).push(r);lastLoadAt=Date.now();const synced=d.map(x=>x.synced_at).filter(Boolean).sort().at(-1)||'-';setStatus(`DB 연결됨 · 일매출 ${d.length.toLocaleString()}일 · 수동충전 ${m.length.toLocaleString()}건 · 서버 최근동기화 ${String(synced).replace('T',' ').slice(0,19)}`);renderMonth();renderYear();if(selected&&!$('detailView').classList.contains('hidden'))showDetail(selected)}catch(e){setStatus('DB 조회 실패: '+e.message,true)}finally{$('refreshBtn').disabled=false}}
-function showApp(){$('loginPage').classList.add('hidden');$('app').classList.remove('hidden');$('statusbar').classList.remove('hidden');$('roleText').textContent=session.role==='admin'?'관리자':'확인자';$('editHead').style.display=session.role==='admin'?'':'none';const d=new Date(),wd=['일','월','화','수','목','금','토'][d.getDay()];$('todayText').textContent=`오늘 ${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} (${wd})`}
+
+function showApp(){
+  $('loginPage').classList.add('hidden');$('app').classList.remove('hidden');$('statusbar').classList.remove('hidden');
+  $('roleText').textContent=session.role==='admin'?'관리자':'확인자';
+  $('manualEditHead').style.display=session.role==='admin'?'':'none';
+  $('supplyEditHead').style.display=session.role==='admin'?'':'none';
+  $('supplyAdminForm').classList.toggle('hidden',session.role!=='admin');
+  const d=new Date(),wd=['일','월','화','수','목','금','토'][d.getDay()];
+  $('todayText').textContent=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} (${wd})`;
+}
 function logout(){sessionStorage.removeItem('uwash_web_session');session=null;location.reload()}
-function dayKey(y,m,d){return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`}
-function isToday(k){const d=new Date();return k===dayKey(d.getFullYear(),d.getMonth(),d.getDate())}
-function renderMonth(){$('monthTitle').textContent=`${year}년 ${month+1}월`;const first=new Date(year,month,1).getDay(),count=new Date(year,month+1,0).getDate();let html='',mt=0,mc=0,mk=0;for(let i=0;i<42;i++){const d=i-first+1;if(d<1||d>count){html+='<button class="day empty" disabled></button>';continue}const k=dayKey(year,month,d),r=days[k],dow=new Date(k+'T00:00:00').getDay();let cls=(dow===0||dow===6?' weekend':'')+(HOLIDAYS.has(k)?' holiday':'')+(isToday(k)?' today':'');if(r){mt+=num(r.total_sales);mc+=num(r.cash_total);mk+=num(r.card_total);html+=`<button class="day has-data${cls}" data-date="${k}"><span class="n">${d}</span><div class="values"><span class="sales">매출 ${num(r.total_sales).toLocaleString()}</span><br>현금 ${num(r.cash_total).toLocaleString()}<br>카드 ${num(r.card_total).toLocaleString()}${num(r.pending_count)?`<br><span class="pending">미확인 ${num(r.pending_count)}건</span>`:''}</div></button>`}else html+=`<button class="day${cls}" disabled><span class="n">${d}</span></button>`}$('calendar').innerHTML=html;$('monthTotal').textContent=`월매출 ${mt.toLocaleString()}원  |  현금 ${mc.toLocaleString()}원  |  카드 ${mk.toLocaleString()}원`;document.querySelectorAll('.day[data-date]').forEach(x=>x.onclick=()=>showDetail(x.dataset.date))}
-function showDetail(k){selected=k;const r=days[k];if(!r)return;const dt=new Date(k+'T00:00:00'),wd=['일','월','화','수','목','금','토'][dt.getDay()];$('detailTitle').textContent=`${k}(${wd}) 유워시 매출 내역`;$('detailTotal').textContent=won(r.total_sales);$('detailCash').textContent=won(r.cash_total);$('detailCard').textContent=won(r.card_total);$('unattended').textContent=won(r.unattended_cash);$('manualCash').textContent=won(r.manual_cash);$('manualAccount').textContent=won(r.manual_account);$('manualCard').textContent=won(r.manual_card);$('cardSales').textContent=won(r.card_sales);$('cardCount').textContent=num(r.card_count).toLocaleString()+'건';const list=manualByDate[k]||[];$('manualWrap').classList.toggle('hidden',list.length===0);const labels={pending:'미확인',record:'기록',ignore:'무시'};$('manualBody').innerHTML=list.map(x=>`<tr><td>${esc(x.event_time||'')}</td><td class="num">${won(x.charge_amount)}</td><td class="num">${x.sales_amount==null?'미입력':won(x.sales_amount)}</td><td>${esc(x.card_no||'')}</td><td>${esc(x.machine||'')}</td><td>${labels[x.decision]||esc(x.decision||'')}</td><td>${esc(x.payment_method||'')}</td><td>${esc(x.comment||'')}</td><td>${session?.role==='admin'?`<button class="edit-btn" data-key="${esc(x.transaction_key)}">수정</button>`:''}</td></tr>`).join('');document.querySelectorAll('.edit-btn').forEach(b=>b.onclick=()=>openManualEdit(b.dataset.key));$('monthView').classList.add('hidden');$('yearView').classList.add('hidden');$('detailView').classList.remove('hidden')}
-function moveDay(delta){if(!selected)return;const d=new Date(selected+'T00:00:00');d.setDate(d.getDate()+delta);const k=dayKey(d.getFullYear(),d.getMonth(),d.getDate());if(days[k])showDetail(k)}
-function renderYear(){$('yearTitle').textContent=`${annualYear}년 연매출`;let grand=0,cash=0,card=0,html='';const now=new Date();for(let m=1;m<=12;m++){const prefix=`${annualYear}-${String(m).padStart(2,'0')}-`;const rows=dailyRows.filter(r=>r.sale_date.startsWith(prefix));const mt=rows.reduce((a,r)=>a+num(r.total_sales),0),mc=rows.reduce((a,r)=>a+num(r.cash_total),0),mk=rows.reduce((a,r)=>a+num(r.card_total),0),pending=rows.reduce((a,r)=>a+num(r.pending_count),0);grand+=mt;cash+=mc;card+=mk;const cur=(annualYear===now.getFullYear()&&m===now.getMonth()+1)?' current':'';html+=`<button class="month-card${cur}" data-month="${m}"><div class="month">${m}월</div><div class="sales">매출 ${mt.toLocaleString()}원</div><div class="row">현금 ${mc.toLocaleString()}원</div><div class="row">카드 ${mk.toLocaleString()}원</div><div class="muted">집계일 ${rows.length}일${pending?` · 미확인 ${pending}건`:''}</div></button>`}$('yearGrid').innerHTML=html;$('yearTotal').textContent=`연매출 ${grand.toLocaleString()}원  |  현금 ${cash.toLocaleString()}원  |  카드 ${card.toLocaleString()}원`;document.querySelectorAll('.month-card').forEach(x=>x.onclick=()=>{year=annualYear;month=Number(x.dataset.month)-1;showMonthTab();renderMonth()})}
-function showMonthTab(){$('monthTab').classList.add('active');$('yearTab').classList.remove('active');$('detailView').classList.add('hidden');$('yearView').classList.add('hidden');$('monthView').classList.remove('hidden')}
-function showYearTab(){$('yearTab').classList.add('active');$('monthTab').classList.remove('active');$('detailView').classList.add('hidden');$('monthView').classList.add('hidden');$('yearView').classList.remove('hidden');renderYear()}
-function boot(){$('email').value=localStorage.getItem('uwash_web_email')||'';try{session=JSON.parse(sessionStorage.getItem('uwash_web_session')||'null')}catch{session=null}if(session?.access_token&&session?.user_id&&session?.role){showApp();loadData()}setInterval(()=>{if(session&&Date.now()-lastLoadAt>60000)loadData()},60000);window.addEventListener('focus',()=>{if(session&&Date.now()-lastLoadAt>30000)loadData()})}
-$('cancelEdit').onclick=closeManualEdit;$('saveEdit').onclick=saveManualEdit;$('editModal').onclick=e=>{if(e.target===$('editModal'))closeManualEdit()};
-$('loginBtn').onclick=signIn;$('password').onkeydown=e=>{if(e.key==='Enter')signIn()};$('logoutBtn').onclick=logout;$('refreshBtn').onclick=loadData;$('monthTab').onclick=showMonthTab;$('yearTab').onclick=showYearTab;
+
+async function loadData(){
+  setStatus('Supabase DB에서 매출과 세차용품 장부를 불러오는 중...');
+  $('refreshBtn').disabled=true;
+  try{
+    const [d,m,items,sales]=await Promise.all([
+      fetchAll('uwash_daily_sales','*','sale_date.asc'),
+      fetchAll('uwash_manual_charge','*','sale_date.asc,event_time.asc'),
+      fetchAll('uwash_supply_items','*','sort_order.asc,item_name.asc'),
+      fetchAll('uwash_supply_sales','*','sale_date.asc')
+    ]);
+    dailyRows=d;manualRows=m;supplyItems=items;supplyRows=sales;days={};manualByDate={};
+    for(const r of d)days[r.sale_date]=r;
+    for(const r of m)(manualByDate[r.sale_date]??=[]).push(r);
+    if(!dailyDate){
+      const today=dateKey(new Date());
+      dailyDate=days[today]?today:(d.length?d[d.length-1].sale_date:today);
+    }
+    lastLoadAt=Date.now();
+    renderDaily();renderMonth();renderYear();renderSupply();
+    const synced=d.map(x=>x.synced_at).filter(Boolean).sort().at(-1)||'-';
+    setStatus(`DB 연결됨 · 일매출 ${d.length.toLocaleString()}일 · 수동충전 ${m.length.toLocaleString()}건 · 세차용품 ${sales.length.toLocaleString()}건 · 최근동기화 ${String(synced).replace('T',' ').slice(0,19)}`);
+  }catch(e){setStatus('DB 조회 실패: '+e.message,true)}
+  finally{$('refreshBtn').disabled=false}
+}
+
+function activate(name){
+  const views={daily:'dailyView',month:'monthView',year:'yearView',supply:'supplyView'};
+  const tabs={daily:'dailyTab',month:'monthTab',year:'yearTab',supply:'supplyTab'};
+  for(const k in views)$(views[k]).classList.toggle('hidden',k!==name);
+  for(const k in tabs)$(tabs[k]).classList.toggle('active',k===name);
+  if(name==='daily')renderDaily();else if(name==='month')renderMonth();else if(name==='year')renderYear();else renderSupply();
+}
+
+function moveDaily(delta){
+  let d=parseDate(dailyDate);d.setDate(d.getDate()+delta);dailyDate=dateKey(d);renderDaily()
+}
+function renderDaily(){
+  const d=parseDate(dailyDate),wd=['일','월','화','수','목','금','토'][d.getDay()],r=days[dailyDate];
+  $('dailyTitle').textContent=`${dailyDate} (${wd})`;
+  $('dailyEmpty').classList.toggle('hidden',!!r);$('dailyContent').classList.toggle('hidden',!r);
+  if(!r){$('dailyState').textContent='미집계';return}
+  $('dTotal').textContent=won(r.total_sales);$('dCash').textContent=won(r.cash_total);$('dCard').textContent=won(r.card_total);
+  $('dPending').textContent=num(r.pending_count).toLocaleString()+'건';
+  $('dUnattended').textContent=won(r.unattended_cash);$('dManualCash').textContent=won(r.manual_cash);$('dManualAccount').textContent=won(r.manual_account);
+  $('dCardSales').textContent=won(r.card_sales);$('dManualCard').textContent=won(r.manual_card);$('dCardCount').textContent=num(r.card_count).toLocaleString()+'건';
+  $('dailyState').textContent=num(r.pending_count)?`미확인 ${num(r.pending_count)}건`:'확인 완료';
+  const list=manualByDate[dailyDate]||[],labels={pending:'미확인',record:'기록',ignore:'무시'};
+  $('manualWrap').classList.toggle('hidden',list.length===0);
+  $('manualBody').innerHTML=list.map(x=>`<tr>
+    <td>${esc(x.event_time||'')}</td><td class="num">${won(x.charge_amount)}</td>
+    <td class="num">${x.sales_amount==null?'미입력':won(x.sales_amount)}</td><td>${esc(x.card_no||'')}</td><td>${esc(x.machine||'')}</td>
+    <td><span class="tag ${esc(x.decision||'pending')}">${labels[x.decision]||esc(x.decision||'')}</span></td><td>${esc(x.payment_method||'')}</td>
+    <td class="comment">${esc(x.comment||'')}</td>${session?.role==='admin'?`<td><button class="edit-btn manual-edit" data-key="${esc(x.transaction_key)}">수정</button></td>`:''}
+  </tr>`).join('');
+  document.querySelectorAll('.manual-edit').forEach(b=>b.onclick=()=>openManualEdit(b.dataset.key));
+}
+
+function renderMonth(){
+  $('monthTitle').textContent=`${year}년 ${month+1}월`;
+  const first=new Date(year,month,1).getDay(),count=new Date(year,month+1,0).getDate();let html='',mt=0,mc=0,mk=0;
+  for(let i=0;i<42;i++){
+    const dd=i-first+1;
+    if(dd<1||dd>count){html+='<button class="day empty" disabled></button>';continue}
+    const k=`${year}-${String(month+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`,r=days[k],dt=parseDate(k),dow=dt.getDay();
+    const red=(dow===0||dow===6||HOLIDAYS.has(k)),today=k===dateKey(new Date());
+    let cls=(red?' red-day':'')+(today?' today':'');
+    if(r){
+      mt+=num(r.total_sales);mc+=num(r.cash_total);mk+=num(r.card_total);
+      html+=`<button class="day${cls}" data-date="${k}">
+        <div class="number">${dd}</div><div class="sales">매출 ${num(r.total_sales).toLocaleString()}</div>
+        <div class="line">현금 ${num(r.cash_total).toLocaleString()}</div><div class="line">카드 ${num(r.card_total).toLocaleString()}</div>
+        ${num(r.pending_count)?`<span class="pending">미확인 ${num(r.pending_count)}건</span>`:''}
+      </button>`;
+    }else{
+      html+=`<button class="day${cls}" data-date="${k}"><div class="number">${dd}</div>${dt<new Date(new Date().setHours(0,0,0,0))?'<div class="line" style="color:#999">미집계</div>':''}</button>`;
+    }
+  }
+  $('calendar').innerHTML=html;$('monthTotal').textContent=`월매출 ${mt.toLocaleString()}원  |  현금 ${mc.toLocaleString()}원  |  카드 ${mk.toLocaleString()}원`;
+  document.querySelectorAll('.day[data-date]').forEach(b=>b.onclick=()=>{dailyDate=b.dataset.date;activate('daily')});
+}
+function renderYear(){
+  $('yearTitle').textContent=`${annualYear}년`;let grand=0,cash=0,card=0,html='';const cur=new Date();
+  for(let m=1;m<=12;m++){
+    const prefix=`${annualYear}-${String(m).padStart(2,'0')}-`,rows=dailyRows.filter(r=>r.sale_date.startsWith(prefix));
+    const t=rows.reduce((a,r)=>a+num(r.total_sales),0),c=rows.reduce((a,r)=>a+num(r.cash_total),0),k=rows.reduce((a,r)=>a+num(r.card_total),0),p=rows.reduce((a,r)=>a+num(r.pending_count),0);
+    grand+=t;cash+=c;card+=k;
+    html+=`<button class="month-card${annualYear===cur.getFullYear()&&m===cur.getMonth()+1?' current':''}" data-month="${m}">
+      <div class="month">${m}월</div><div class="sales">${t.toLocaleString()}원</div><div class="row">현금 ${c.toLocaleString()}원</div><div class="row">카드 ${k.toLocaleString()}원</div>
+      <div class="muted">집계일 ${rows.length}일${p?` · 미확인 ${p}건`:''}</div></button>`;
+  }
+  $('yearGrid').innerHTML=html;$('yearTotal').textContent=`연매출 ${grand.toLocaleString()}원  |  현금 ${cash.toLocaleString()}원  |  카드 ${card.toLocaleString()}원`;
+  document.querySelectorAll('.month-card').forEach(b=>b.onclick=()=>{year=annualYear;month=Number(b.dataset.month)-1;activate('month')});
+}
+
+function resetSupplyForm(){
+  editingSupplyKey=null;$('supplyDate').value=dateKey(new Date());$('supplyMethod').value='현금';$('supplyAmount').value='';$('supplyComment').value='';$('supplyError').textContent='';
+  if($('supplyItem').options.length)$('supplyItem').selectedIndex=0;
+}
+function renderSupply(){
+  $('supplyMonthTitle').textContent=`${supplyYear}년 ${supplyMonth+1}월`;
+  const active=supplyItems.filter(x=>x.is_active);
+  $('supplyItem').innerHTML=active.map(x=>`<option value="${esc(x.item_key)}">${esc(x.item_name)}</option>`).join('');
+  $('masterList').innerHTML=supplyItems.map(x=>`<span class="master-pill${x.is_active?'':' off'}">${esc(x.item_name)}</span>`).join('')||'<span style="font-size:11px;color:#999">PC에서 기본항목을 등록하세요.</span>';
+  const prefix=`${supplyYear}-${String(supplyMonth+1).padStart(2,'0')}-`,rows=supplyRows.filter(x=>x.sale_date.startsWith(prefix)).sort((a,b)=>(b.sale_date||'').localeCompare(a.sale_date||''));
+  let cash=0,account=0,card=0;for(const r of rows){if(r.payment_method==='현금')cash+=num(r.amount);else if(r.payment_method==='계좌')account+=num(r.amount);else if(r.payment_method==='카드')card+=num(r.amount)}
+  const total=cash+account+card;$('sTotal').textContent=won(total);$('sCash').textContent=won(cash);$('sAccount').textContent=won(account);$('sCard').textContent=won(card);
+  $('supplyTotalLine').textContent=`장부 ${rows.length}건 · ${total.toLocaleString()}원`;
+  $('supplyBody').innerHTML=rows.map(r=>`<tr>
+    <td>${esc(r.sale_date)}</td><td>${esc(r.item_name)}</td><td>${esc(r.payment_method)}</td><td class="num">${won(r.amount)}</td><td class="comment">${esc(r.comment||'')}</td>
+    ${session?.role==='admin'?`<td><button class="edit-btn supply-edit" data-key="${esc(r.transaction_key)}">수정</button></td>`:''}
+  </tr>`).join('');
+  document.querySelectorAll('.supply-edit').forEach(b=>b.onclick=()=>editSupply(b.dataset.key));
+}
+function editSupply(key){
+  const r=supplyRows.find(x=>x.transaction_key===key);if(!r)return;editingSupplyKey=key;
+  $('supplyDate').value=r.sale_date;$('supplyItem').value=r.item_key||'';$('supplyMethod').value=r.payment_method;$('supplyAmount').value=String(r.amount);$('supplyComment').value=r.comment||'';$('supplyError').textContent='';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function saveSupply(){
+  if(session?.role!=='admin')return;
+  const item=supplyItems.find(x=>x.item_key===$('supplyItem').value);if(!item){$('supplyError').textContent='PC 프로그램에서 기본항목을 먼저 등록하세요.';return}
+  const saleDate=$('supplyDate').value,method=$('supplyMethod').value,raw=$('supplyAmount').value.replace(/[,원\s]/g,''),comment=$('supplyComment').value.trim();
+  if(!saleDate){$('supplyError').textContent='날짜를 선택하세요.';return}
+  if(!/^\d+$/.test(raw)||Number(raw)<=0){$('supplyError').textContent='금액을 숫자로 입력하세요.';return}
+  const key=editingSupplyKey||((crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()).replaceAll('-',''));
+  const body={transaction_key:key,sale_date:saleDate,item_key:item.item_key,item_name:item.item_name,payment_method:method,amount:Number(raw),comment,local_updated_at:new Date().toISOString()};
+  $('saveSupply').disabled=true;$('supplyError').textContent='저장 중...';
+  try{
+    await apiWrite('POST','uwash_supply_sales?on_conflict=transaction_key',body);resetSupplyForm();await loadData();supplyYear=Number(saleDate.slice(0,4));supplyMonth=Number(saleDate.slice(5,7))-1;renderSupply();setStatus('세차용품 장부를 Supabase DB에 저장했습니다.')
+  }catch(e){$('supplyError').textContent='저장 실패: '+e.message}
+  finally{$('saveSupply').disabled=false}
+}
+async function deleteSupply(){
+  if(!editingSupplyKey){$('supplyError').textContent='삭제할 장부 항목을 먼저 선택하세요.';return}
+  if(!confirm('선택한 세차용품 장부 기록을 삭제할까요?'))return;
+  try{await apiWrite('DELETE','uwash_supply_sales?transaction_key=eq.'+encodeURIComponent(editingSupplyKey),null);resetSupplyForm();await loadData();setStatus('세차용품 장부 기록을 삭제했습니다.')}catch(e){$('supplyError').textContent='삭제 실패: '+e.message}
+}
+
+function openManualEdit(key){
+  if(session?.role!=='admin')return;const r=manualRows.find(x=>x.transaction_key===key);if(!r)return;editingManualKey=key;
+  $('manualMeta').textContent=`${r.sale_date} ${r.event_time||''} · 카드 ${r.card_no||'-'} · 충전 ${won(r.charge_amount)}`;
+  $('editDecision').value=r.decision||'pending';$('editSalesAmount').value=r.sales_amount==null?'':String(r.sales_amount);$('editMethod').value=r.payment_method||'';$('editComment').value=r.comment||'';$('manualError').textContent='';$('manualModal').classList.remove('hidden');
+}
+function closeManual(){editingManualKey=null;$('manualModal').classList.add('hidden')}
+async function recalcDaily(k){
+  const manual=await apiFetch('uwash_manual_charge?select=decision,payment_method,sales_amount&sale_date=eq.'+encodeURIComponent(k));
+  const daily=await apiFetch('uwash_daily_sales?select=*&sale_date=eq.'+encodeURIComponent(k));if(!daily.length)return;
+  let mc=0,ma=0,mcard=0,p=0;for(const r of manual){if(r.decision==='pending')p++;if(r.decision!=='record')continue;const v=num(r.sales_amount);if(r.payment_method==='현금')mc+=v;else if(r.payment_method==='계좌')ma+=v;else if(r.payment_method==='카드')mcard+=v}
+  const d=daily[0],cash=num(d.unattended_cash)+mc+ma,card=num(d.card_sales)+mcard;
+  await apiWrite('PATCH','uwash_daily_sales?sale_date=eq.'+encodeURIComponent(k),{manual_cash:mc,manual_account:ma,manual_card:mcard,pending_count:p,cash_total:cash,card_total:card,total_sales:cash+card,local_updated_at:new Date().toISOString()});
+}
+async function saveManual(){
+  const r=manualRows.find(x=>x.transaction_key===editingManualKey);if(!r)return;const decision=$('editDecision').value,method=$('editMethod').value,comment=$('editComment').value.trim(),raw=$('editSalesAmount').value.replace(/[,원\s]/g,'');let sales=null;
+  if(decision==='record'){if(!['현금','계좌','카드'].includes(method)){$('manualError').textContent='기록할 때 결제수단을 선택하세요.';return}if(!/^\d+$/.test(raw)){$('manualError').textContent='실수납액을 숫자로 입력하세요.';return}sales=Number(raw)}
+  if(decision==='ignore'&&!comment){$('manualError').textContent='무시할 때는 코멘트에 사유를 입력하세요.';return}
+  try{await apiWrite('PATCH','uwash_manual_charge?transaction_key=eq.'+encodeURIComponent(editingManualKey),{decision,payment_method:decision==='record'?method:null,sales_amount:decision==='record'?sales:null,comment,local_updated_at:new Date().toISOString()});await recalcDaily(r.sale_date);closeManual();await loadData();dailyDate=r.sale_date;renderDaily();setStatus('수동충전 수정값을 DB에 저장했습니다.')}catch(e){$('manualError').textContent='저장 실패: '+e.message}
+}
+
+function boot(){
+  $('email').value=localStorage.getItem('uwash_web_email')||'';
+  try{session=JSON.parse(sessionStorage.getItem('uwash_web_session')||'null')}catch{session=null}
+  if(session?.access_token&&session?.user_id&&session?.role){showApp();loadData()}
+  setInterval(()=>{if(session&&Date.now()-lastLoadAt>60000)loadData()},60000);
+  window.addEventListener('focus',()=>{if(session&&Date.now()-lastLoadAt>30000)loadData()});
+}
+
+$('loginBtn').onclick=signIn;$('password').onkeydown=e=>{if(e.key==='Enter')signIn()};$('logoutBtn').onclick=logout;$('refreshBtn').onclick=loadData;
+$('dailyTab').onclick=()=>activate('daily');$('monthTab').onclick=()=>activate('month');$('yearTab').onclick=()=>activate('year');$('supplyTab').onclick=()=>activate('supply');
+$('prevDay').onclick=()=>moveDaily(-1);$('nextDay').onclick=()=>moveDaily(1);$('todayDay').onclick=()=>{dailyDate=dateKey(new Date());renderDaily()};
 $('prevMonth').onclick=()=>{month--;if(month<0){month=11;year--}renderMonth()};$('nextMonth').onclick=()=>{month++;if(month>11){month=0;year++}renderMonth()};$('thisMonth').onclick=()=>{const d=new Date();year=d.getFullYear();month=d.getMonth();renderMonth()};
-$('backMonth').onclick=()=>{showMonthTab();renderMonth()};$('prevDay').onclick=()=>moveDay(-1);$('nextDay').onclick=()=>moveDay(1);
 $('prevYear').onclick=()=>{annualYear--;renderYear()};$('nextYear').onclick=()=>{annualYear++;renderYear()};$('thisYear').onclick=()=>{annualYear=new Date().getFullYear();renderYear()};
-boot();
+$('prevSupplyMonth').onclick=()=>{supplyMonth--;if(supplyMonth<0){supplyMonth=11;supplyYear--}renderSupply()};$('nextSupplyMonth').onclick=()=>{supplyMonth++;if(supplyMonth>11){supplyMonth=0;supplyYear++}renderSupply()};$('thisSupplyMonth').onclick=()=>{const d=new Date();supplyYear=d.getFullYear();supplyMonth=d.getMonth();renderSupply()};
+$('newSupply').onclick=resetSupplyForm;$('saveSupply').onclick=saveSupply;
+$('cancelManual').onclick=closeManual;$('saveManual').onclick=saveManual;$('manualModal').onclick=e=>{if(e.target===$('manualModal'))closeManual()};
+resetSupplyForm();boot();
 </script>
-</body></html>
+</body>
+</html>
