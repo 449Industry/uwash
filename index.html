@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="color-scheme" content="light">
 <title>유워시 매출결산</title>
 <style>
@@ -187,7 +190,7 @@ tr:hover td{background:#fafafa}
   <header class="header">
     <div class="header-inner">
       <div class="header-title"><span class="u">UWASH</span> 매출결산</div>
-      <span class="header-meta">WEB DB · <span id="todayText"></span></span>
+      <span class="header-meta"><b>WEB v2.0.8</b> · <span id="todayText"></span></span>
       <div class="spacer"></div>
       <span id="roleText" class="role"></span>
       <div class="header-actions">
@@ -438,7 +441,7 @@ tr:hover td{background:#fafafa}
 const SUPABASE_URL="https://cubbhtzyrpksqsmisqur.supabase.co";
 const SUPABASE_KEY="sb_publishable_ZGbtzVP2L8O9WZ72VUCG_Q_R_b8yQX-";
 const HOLIDAYS=new Set(["2020-01-01", "2020-01-24", "2020-01-25", "2020-01-26", "2020-01-27", "2020-03-01", "2020-04-15", "2020-04-30", "2020-05-05", "2020-06-06", "2020-08-15", "2020-08-17", "2020-09-30", "2020-10-01", "2020-10-02", "2020-10-03", "2020-10-09", "2020-12-25", "2021-01-01", "2021-02-11", "2021-02-12", "2021-02-13", "2021-03-01", "2021-05-05", "2021-05-19", "2021-06-06", "2021-08-15", "2021-08-16", "2021-09-20", "2021-09-21", "2021-09-22", "2021-10-03", "2021-10-04", "2021-10-09", "2021-10-11", "2021-12-25", "2022-01-01", "2022-01-31", "2022-02-01", "2022-02-02", "2022-03-01", "2022-03-09", "2022-05-05", "2022-05-08", "2022-06-01", "2022-06-06", "2022-08-15", "2022-09-09", "2022-09-10", "2022-09-11", "2022-09-12", "2022-10-03", "2022-10-09", "2022-10-10", "2022-12-25", "2023-01-01", "2023-01-21", "2023-01-22", "2023-01-23", "2023-01-24", "2023-03-01", "2023-05-05", "2023-05-27", "2023-05-29", "2023-06-06", "2023-08-15", "2023-09-28", "2023-09-29", "2023-09-30", "2023-10-02", "2023-10-03", "2023-10-09", "2023-12-25", "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", "2024-04-10", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-01", "2024-10-03", "2024-10-09", "2024-12-25", "2025-01-01", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01", "2025-03-03", "2025-05-05", "2025-05-06", "2025-06-03", "2025-06-06", "2025-08-15", "2025-10-03", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-12-25", "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01", "2026-03-02", "2026-05-01", "2026-05-05", "2026-05-24", "2026-05-25", "2026-06-03", "2026-06-06", "2026-07-17", "2026-08-15", "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03", "2026-10-05", "2026-10-09", "2026-12-25", "2027-01-01", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-03-01", "2027-05-01", "2027-05-03", "2027-05-05", "2027-05-13", "2027-06-06", "2027-07-17", "2027-07-19", "2027-08-15", "2027-08-16", "2027-09-14", "2027-09-15", "2027-09-16", "2027-10-03", "2027-10-04", "2027-10-09", "2027-10-11", "2027-12-25", "2027-12-27", "2028-01-01", "2028-01-26", "2028-01-27", "2028-01-28", "2028-03-01", "2028-04-12", "2028-05-01", "2028-05-02", "2028-05-05", "2028-06-06", "2028-07-17", "2028-08-15", "2028-10-02", "2028-10-03", "2028-10-04", "2028-10-05", "2028-10-09", "2028-12-25", "2029-01-01", "2029-02-12", "2029-02-13", "2029-02-14", "2029-03-01", "2029-05-01", "2029-05-05", "2029-05-07", "2029-05-20", "2029-05-21", "2029-06-06", "2029-07-17", "2029-08-15", "2029-09-21", "2029-09-22", "2029-09-23", "2029-09-24", "2029-10-03", "2029-10-09", "2029-12-25", "2030-01-01", "2030-02-02", "2030-02-03", "2030-02-04", "2030-02-05", "2030-03-01", "2030-04-03", "2030-05-01", "2030-05-05", "2030-05-06", "2030-05-09", "2030-06-06", "2030-06-12", "2030-07-17", "2030-08-15", "2030-09-11", "2030-09-12", "2030-09-13", "2030-10-03", "2030-10-09", "2030-12-25", "2031-01-01", "2031-01-22", "2031-01-23", "2031-01-24", "2031-03-01", "2031-03-03", "2031-05-01", "2031-05-05", "2031-05-28", "2031-06-06", "2031-07-17", "2031-08-15", "2031-09-30", "2031-10-01", "2031-10-02", "2031-10-03", "2031-10-09", "2031-12-25", "2032-01-01", "2032-02-10", "2032-02-11", "2032-02-12", "2032-03-01", "2032-04-14", "2032-05-01", "2032-05-03", "2032-05-05", "2032-05-16", "2032-05-17", "2032-06-06", "2032-07-17", "2032-07-19", "2032-08-15", "2032-08-16", "2032-09-18", "2032-09-19", "2032-09-20", "2032-09-21", "2032-10-03", "2032-10-04", "2032-10-09", "2032-10-11", "2032-12-25", "2032-12-27", "2033-01-01", "2033-01-30", "2033-01-31", "2033-02-01", "2033-02-02", "2033-03-01", "2033-05-01", "2033-05-02", "2033-05-05", "2033-05-06", "2033-06-06", "2033-07-17", "2033-07-18", "2033-08-15", "2033-09-07", "2033-09-08", "2033-09-09", "2033-10-03", "2033-10-09", "2033-10-10", "2033-12-25", "2033-12-26", "2034-01-01", "2034-02-18", "2034-02-19", "2034-02-20", "2034-02-21", "2034-03-01", "2034-05-01", "2034-05-05", "2034-05-25", "2034-06-06", "2034-06-14", "2034-07-17", "2034-08-15", "2034-09-26", "2034-09-27", "2034-09-28", "2034-10-03", "2034-10-09", "2034-12-25", "2035-01-01", "2035-02-07", "2035-02-08", "2035-02-09", "2035-03-01", "2035-04-04", "2035-05-01", "2035-05-05", "2035-05-07", "2035-05-15", "2035-06-06", "2035-07-17", "2035-08-15", "2035-09-15", "2035-09-16", "2035-09-17", "2035-09-18", "2035-10-03", "2035-10-09", "2035-12-25", "2036-01-01", "2036-01-27", "2036-01-28", "2036-01-29", "2036-01-30", "2036-03-01", "2036-03-03", "2036-04-09", "2036-05-01", "2036-05-03", "2036-05-05", "2036-05-06", "2036-06-06", "2036-07-17", "2036-08-15", "2036-10-03", "2036-10-04", "2036-10-05", "2036-10-06", "2036-10-07", "2036-10-09", "2036-12-25"]);
-const BUILD_TIME="2026-08-31T16:39:29";
+const BUILD_TIME="2026-08-31T22:45:49";
 const $=id=>document.getElementById(id);
 const num=n=>Number(n)||0;
 const won=n=>num(n).toLocaleString('ko-KR')+'원';
@@ -614,6 +617,16 @@ function categorySummary(manualList,supplyList){
 function categoryCell(count,cash,card){
   return `<div class="p-category"><b>${count.toLocaleString()}건</b><br>현금/계좌 ${won(cash)}<br>카드 ${won(card)}</div>`;
 }
+function categoryPrintRow(label,count,cash,card){
+  const total=num(cash)+num(card);
+  return `<tr>
+    <td>${esc(label)}</td>
+    <td class="num">${num(count).toLocaleString()}건</td>
+    <td class="num">${won(cash)}</td>
+    <td class="num">${won(card)}</td>
+    <td class="num"><b>${won(total)}</b></td>
+  </tr>`;
+}
 function printSummaryTable(label,total,cash,card){
   return `<table class="p-summary">
     <tr><td>${esc(label)} 총매출</td><td class="num">${won(total)}</td></tr>
@@ -689,86 +702,65 @@ function printDailySales(){
 
 function printMonthSales(){
   const prefix=`${year}-${String(month+1).padStart(2,'0')}-`;
-  const monthRows=dailyRows.filter(r=>String(r.sale_date||'').startsWith(prefix));
   const endDay=new Date(year,month+1,0).getDate();
-  const startKey=`${prefix}01`,endKey=`${prefix}${String(endDay).padStart(2,'0')}`;
+  const startKey=`${prefix}01`;
+  const endKey=`${prefix}${String(endDay).padStart(2,'0')}`;
+
+  const monthRows=dailyRows.filter(r=>String(r.sale_date||'').startsWith(prefix));
   const manuals=recordManualRows(startKey,endKey);
   const supplies=supplyRowsBetween(startKey,endKey);
+  const c=categorySummary(manuals,supplies);
+
   const total=monthRows.reduce((a,r)=>a+num(r.total_sales),0);
   const cash=monthRows.reduce((a,r)=>a+num(r.cash_total),0);
   const card=monthRows.reduce((a,r)=>a+num(r.card_total),0);
 
-  const dates=new Set([
-    ...monthRows.map(r=>r.sale_date),
-    ...manuals.map(r=>r.sale_date),
-    ...supplies.map(r=>r.sale_date)
-  ]);
-  const body=[...dates].sort().map(k=>{
-    const r=days[k]||{};
-    const mm=manuals.filter(x=>x.sale_date===k);
-    const ss=supplies.filter(x=>x.sale_date===k);
-    const c=categorySummary(mm,ss);
-    return `<tr>
-      <td>${esc(k)}</td><td>${weekdayOf(k)}</td>
-      <td class="num">${won(r.total_sales)}</td>
-      <td class="num">${won(r.cash_total)}</td>
-      <td class="num">${won(r.card_total)}</td>
-      <td>${categoryCell(c.manualCount,c.manualCash,c.manualCard)}</td>
-      <td>${categoryCell(c.supplyCount,c.supplyCash,c.supplyCard)}</td>
-    </tr>`;
-  }).join('');
-
   showPrintDocument(`
     <div class="p-title">${year}년 ${month+1}월 유워시 월매출 집계</div>
-    <div class="p-sub">수동충전은 '기록' 건만 집계하며 '무시' 건은 건수와 금액에서 제외합니다.</div>
+    <div class="p-sub">수동충전은 '기록' 건만 집계하고 '무시' 건은 제외합니다. 계좌는 현금합계에 포함됩니다.</div>
     ${printSummaryTable('월',total,cash,card)}
+    <div class="p-section">수동충전 · 세차용품 합계</div>
+    <div class="p-small" style="margin:-2px 0 8px">상세 거래 리스트 없이 기간 전체 합계만 표시합니다.</div>
     <table>
       <thead><tr>
-        <th>날짜</th><th>요일</th><th>총매출</th><th>현금/계좌</th><th>카드</th>
-        <th>수동충전</th><th>세차용품</th>
+        <th>구분</th><th>건수</th><th>현금합계</th><th>카드합계</th><th>총합계</th>
       </tr></thead>
-      <tbody>${body||'<tr><td colspan="7" style="text-align:center">집계 자료가 없습니다.</td></tr>'}</tbody>
+      <tbody>
+        ${categoryPrintRow('수동충전',c.manualCount,c.manualCash,c.manualCard)}
+        ${categoryPrintRow('세차용품',c.supplyCount,c.supplyCash,c.supplyCard)}
+      </tbody>
     </table>
     <div class="p-footer">출력일시: ${printTimeText()}</div>
   `);
 }
 
 function printYearSales(){
-  const startKey=`${annualYear}-01-01`,endKey=`${annualYear}-12-31`;
+  const startKey=`${annualYear}-01-01`;
+  const endKey=`${annualYear}-12-31`;
+
   const yearRows=dailyRows.filter(r=>String(r.sale_date||'').startsWith(`${annualYear}-`));
   const manuals=recordManualRows(startKey,endKey);
   const supplies=supplyRowsBetween(startKey,endKey);
+  const c=categorySummary(manuals,supplies);
+
   const total=yearRows.reduce((a,r)=>a+num(r.total_sales),0);
   const cash=yearRows.reduce((a,r)=>a+num(r.cash_total),0);
   const card=yearRows.reduce((a,r)=>a+num(r.card_total),0);
 
-  let body='';
-  for(let m=1;m<=12;m++){
-    const mp=`${annualYear}-${String(m).padStart(2,'0')}-`;
-    const dr=yearRows.filter(r=>r.sale_date.startsWith(mp));
-    const mm=manuals.filter(r=>r.sale_date.startsWith(mp));
-    const ss=supplies.filter(r=>r.sale_date.startsWith(mp));
-    const c=categorySummary(mm,ss);
-    body+=`<tr>
-      <td>${m}월</td>
-      <td class="num">${won(dr.reduce((a,r)=>a+num(r.total_sales),0))}</td>
-      <td class="num">${won(dr.reduce((a,r)=>a+num(r.cash_total),0))}</td>
-      <td class="num">${won(dr.reduce((a,r)=>a+num(r.card_total),0))}</td>
-      <td>${categoryCell(c.manualCount,c.manualCash,c.manualCard)}</td>
-      <td>${categoryCell(c.supplyCount,c.supplyCash,c.supplyCard)}</td>
-    </tr>`;
-  }
-
   showPrintDocument(`
     <div class="p-title">${annualYear}년 유워시 연매출 집계</div>
-    <div class="p-sub">월별 매출기록 요약 · 수동충전 '무시' 건 제외</div>
+    <div class="p-sub">수동충전은 '기록' 건만 집계하고 '무시' 건은 제외합니다. 계좌는 현금합계에 포함됩니다.</div>
     ${printSummaryTable('연',total,cash,card)}
+    <div class="p-section">수동충전 · 세차용품 합계</div>
+    <div class="p-small" style="margin:-2px 0 8px">상세 거래 리스트 없이 기간 전체 합계만 표시합니다.</div>
     <table>
       <thead><tr>
-        <th>월</th><th>총매출</th><th>현금/계좌</th><th>카드</th>
-        <th>수동충전</th><th>세차용품</th>
+        <th>구분</th><th>건수</th><th>현금합계</th><th>카드합계</th><th>총합계</th>
       </tr></thead>
-      <tbody>${body}</tbody>
+      <tbody>
+        ${categoryPrintRow('수동충전',c.manualCount,c.manualCash,c.manualCard)}
+        ${categoryPrintRow('세차용품',c.supplyCount,c.supplyCash,c.supplyCard)}
+      </tbody>
     </table>
     <div class="p-footer">출력일시: ${printTimeText()}</div>
   `);
