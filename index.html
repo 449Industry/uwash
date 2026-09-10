@@ -190,7 +190,7 @@ tr:hover td{background:#fafafa}
   <header class="header">
     <div class="header-inner">
       <div class="header-title"><span class="u">UWASH</span> 매출결산</div>
-      <span class="header-meta"><b>WEB v2.2.0</b> · <span id="todayText"></span></span>
+      <span class="header-meta"><b>WEB v2.3.0</b> · <span id="todayText"></span></span>
       <div class="spacer"></div>
       <span id="roleText" class="role"></span>
       <div class="header-actions">
@@ -232,6 +232,10 @@ tr:hover td{background:#fafafa}
           <div class="metric"><div class="label">현금/계좌</div><div id="dCash" class="value"></div></div>
           <div class="metric"><div class="label">카드</div><div id="dCard" class="value"></div></div>
           <div class="metric"><div class="label">미확인 수동충전</div><div id="dPending" class="value"></div></div>
+        </div>
+        <div id="dailyPurchaseLine" class="preentry-note hidden" style="margin:8px 0">
+          <b>매입</b> <span id="dPurchaseTotal"></span>
+          <span style="color:#777"> · 매출합계와 별도 기록</span>
         </div>
         <div class="breakdown">
           <div class="small-metric"><div class="label">충전(무인)</div><div id="dUnattended" class="value"></div></div>
@@ -410,82 +414,96 @@ tr:hover td{background:#fafafa}
 
     <section id="purchaseView" class="hidden">
       <div class="toolbar">
-        <button id="prevPurchaseMonth" class="btn">◀</button>
-        <div id="purchaseMonthTitle" class="title"></div>
-        <button id="nextPurchaseMonth" class="btn">▶</button>
-        <button id="thisPurchaseMonth" class="btn">이번 달</button>
-        <button id="printPurchaseMonth" class="btn">월 매입 인쇄</button>
-        <div id="purchaseMonthSummary" class="summary"></div>
+        <div class="title" style="text-align:left">매입 입력</div>
+        <div class="spacer"></div>
+        <button id="showPurchaseMonth" class="btn">월매입</button>
+        <button id="showPurchaseYear" class="btn">연매입</button>
+        <button id="showVendorManager" class="btn">구입처 관리</button>
       </div>
 
       <div id="purchaseDbNotice" class="preentry-note hidden">
-        매입 DB 테이블이 아직 준비되지 않았습니다. v2.2.0 Supabase Migration SQL을 먼저 실행하세요.
+        매입 DB가 아직 준비되지 않았습니다. v2.2.0 Supabase Migration SQL을 먼저 실행하세요.
       </div>
 
-      <div class="card" style="margin-bottom:12px">
-        <div class="weekdays"><div class="weekend">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="weekend">토</div></div>
-        <div id="purchaseCalendar" class="calendar-grid"></div>
-      </div>
+      <div id="purchaseAdminForm" class="supply-form" style="margin-bottom:12px">
+        <div class="section-title" style="margin-top:0">빠른 입력</div>
+        <div style="font-size:11px;color:#666;margin-bottom:6px">
+          평소 말하듯 입력하면 날짜·구입처·금액·수량·용도를 찾아 아래 입력칸에 채웁니다.
+        </div>
+        <div style="display:flex;gap:6px;align-items:stretch">
+          <textarea id="purchaseNatural" rows="2" style="flex:1;resize:vertical" placeholder="예: 9월 13일 유워시 본사에 AS 비용 200000원&#10;예: 오늘 다이소에서 타월 10개 30000원"></textarea>
+          <button id="purchaseParse" class="btn primary" style="min-width:110px">자동 분류</button>
+        </div>
+        <div id="purchaseParseResult" style="font-size:11px;color:#555;margin-top:6px"></div>
 
-      <div id="purchaseAdminForm" class="supply-form">
-        <div class="section-title" style="margin-top:0">매입 상품 입력</div>
+        <div class="section-title" style="margin-top:14px">수동 입력</div>
         <div class="form-grid">
           <div class="field"><label>날짜</label><input id="purchaseDate" type="date"></div>
-          <div class="field"><label>구입처</label><select id="purchaseVendor"></select></div>
-          <div class="field"><label>상품명</label><input id="purchaseItem" placeholder="예: 세차타월"></div>
-          <div class="field"><label>분류</label><input id="purchaseCategory" placeholder="예: 소모품"></div>
+          <div class="field"><label>구입처</label><input id="purchaseVendorName" list="purchaseVendorNames" placeholder="직접 입력 가능"><datalist id="purchaseVendorNames"></datalist></div>
+          <div class="field wide"><label>상품 / 내용</label><input id="purchaseItem" placeholder="예: AS 비용, 타월, 호스"></div>
+          <div class="field"><label>용도</label><input id="purchasePurpose" list="purchasePurposeList" placeholder="자동 또는 직접 입력"><datalist id="purchasePurposeList"><option value="AS/수리"></option><option value="세차용품"></option><option value="부품"></option><option value="소모품"></option><option value="공과금"></option><option value="청소"></option><option value="기타"></option></datalist></div>
           <div class="field"><label>수량</label><input id="purchaseQty" inputmode="decimal" value="1"></div>
-          <div class="field"><label>단위</label><input id="purchaseUnit" value="개"></div>
-          <div class="field"><label>단가</label><input id="purchaseUnitPrice" inputmode="numeric" placeholder="0"></div>
-          <div class="field"><label>합계</label><input id="purchaseAmount" inputmode="numeric" placeholder="자동계산"></div>
-          <div class="field"><label>결제상태</label><select id="purchasePayStatus"><option>결제완료</option><option>미지급</option></select></div>
-          <div class="field"><label>결제수단</label><select id="purchasePayMethod"><option>계좌</option><option>카드</option><option>현금</option><option>외상</option><option>기타</option></select></div>
-          <div class="field wide"><label>비고</label><input id="purchaseMemo" placeholder="발주번호, 세금계산서, 메모 등"></div>
+          <div class="field"><label>총금액</label><input id="purchaseAmount" inputmode="numeric" placeholder="0"></div>
+          <div class="field wide"><label>메모</label><input id="purchaseMemo" placeholder="필요할 때만"></div>
         </div>
-        <div id="purchaseCalcText" style="font-size:11px;color:#666;margin-top:6px">수량 × 단가 = 합계</div>
         <div id="purchaseError" class="error"></div>
         <div class="form-actions">
-          <button id="purchaseReset" class="btn">신규</button>
+          <button id="purchaseReset" class="btn">비우기</button>
           <button id="purchaseSave" class="btn primary">매입 저장</button>
         </div>
       </div>
 
-      <div class="supply-layout" style="margin-top:12px">
-        <div>
-          <div class="toolbar" style="margin-bottom:6px">
-            <div id="purchaseListTitle" class="section-title" style="margin:0">월 매입 장부</div>
-            <div class="spacer"></div>
-            <select id="purchaseVendorFilter" class="btn" style="min-width:130px"></select>
-            <input id="purchaseSearch" placeholder="상품명/비고 검색" style="min-width:180px">
-            <button id="purchaseClearDay" class="btn">일자선택 해제</button>
-          </div>
-          <div class="table-wrap"><table>
-            <thead><tr>
-              <th>날짜</th><th>구입처</th><th>상품명</th><th>분류</th>
-              <th>수량</th><th>단가</th><th>합계</th><th>결제</th><th>수단</th>
-              <th>비고</th><th id="purchaseActionHead">관리</th>
-            </tr></thead>
-            <tbody id="purchaseBody"></tbody>
-          </table></div>
-        </div>
+      <div class="card" style="padding:12px;margin-bottom:12px">
+        <div class="section-title" style="margin-top:0">최근 입력</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>날짜</th><th>구입처</th><th>상품/내용</th><th>용도</th><th>수량</th><th>금액</th><th id="purchaseActionHead">관리</th></tr></thead>
+          <tbody id="purchaseRecentBody"></tbody>
+        </table></div>
+      </div>
 
-        <aside class="master-box">
+      <div id="purchaseMonthPanel" class="hidden">
+        <div class="toolbar">
+          <button id="prevPurchaseMonth" class="btn">◀</button>
+          <div id="purchaseMonthTitle" class="title"></div>
+          <button id="nextPurchaseMonth" class="btn">▶</button>
+          <button id="thisPurchaseMonth" class="btn">이번 달</button>
+          <button id="printPurchaseMonth" class="btn">인쇄</button>
+          <div id="purchaseMonthSummary" class="summary"></div>
+        </div>
+        <div class="card">
+          <div class="weekdays"><div class="weekend">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="weekend">토</div></div>
+          <div id="purchaseCalendar" class="calendar-grid"></div>
+        </div>
+        <div id="purchaseDayDetail" class="card" style="padding:12px;margin-top:10px"></div>
+      </div>
+
+      <div id="purchaseYearPanel" class="hidden">
+        <div class="toolbar">
+          <button id="prevPurchaseYear" class="btn">◀</button>
+          <div id="purchaseYearTitle" class="title"></div>
+          <button id="nextPurchaseYear" class="btn">▶</button>
+          <button id="thisPurchaseYear" class="btn">올해</button>
+          <div id="purchaseYearSummary" class="summary"></div>
+        </div>
+        <div id="purchaseYearGrid" class="year-grid"></div>
+      </div>
+
+      <div id="vendorManagerPanel" class="hidden">
+        <div class="supply-form" style="margin-top:10px">
           <div class="section-title" style="margin-top:0">구입처 관리</div>
-          <div id="vendorAdminBox">
+          <div class="form-grid">
             <div class="field"><label>구입처명</label><input id="vendorName"></div>
-            <div class="field"><label>담당자</label><input id="vendorContact"></div>
-            <div class="field"><label>전화</label><input id="vendorPhone"></div>
-            <div class="field"><label>사업자번호</label><input id="vendorBizNo"></div>
-            <div class="field"><label>주소</label><input id="vendorAddress"></div>
-            <div class="field"><label>메모</label><textarea id="vendorMemo"></textarea></div>
-            <div id="vendorError" class="error"></div>
-            <div class="form-actions">
-              <button id="vendorReset" class="btn">신규</button>
-              <button id="vendorSave" class="btn primary">저장</button>
-            </div>
+            <div class="field"><label>연락처</label><input id="vendorPhone"></div>
+            <div class="field wide"><label>메모</label><input id="vendorMemo"></div>
+          </div>
+          <input id="vendorContact" type="hidden"><input id="vendorBizNo" type="hidden"><input id="vendorAddress" type="hidden">
+          <div id="vendorError" class="error"></div>
+          <div class="form-actions">
+            <button id="vendorReset" class="btn">신규</button>
+            <button id="vendorSave" class="btn primary">저장</button>
           </div>
           <div id="vendorList" class="master-list" style="display:block;margin-top:10px"></div>
-        </aside>
+        </div>
       </div>
     </section>
 
@@ -592,7 +610,7 @@ tr:hover td{background:#fafafa}
 const SUPABASE_URL="https://cubbhtzyrpksqsmisqur.supabase.co";
 const SUPABASE_KEY="sb_publishable_ZGbtzVP2L8O9WZ72VUCG_Q_R_b8yQX-";
 const HOLIDAYS=new Set(["2020-01-01", "2020-01-24", "2020-01-25", "2020-01-26", "2020-01-27", "2020-03-01", "2020-04-15", "2020-04-30", "2020-05-05", "2020-06-06", "2020-08-15", "2020-08-17", "2020-09-30", "2020-10-01", "2020-10-02", "2020-10-03", "2020-10-09", "2020-12-25", "2021-01-01", "2021-02-11", "2021-02-12", "2021-02-13", "2021-03-01", "2021-05-05", "2021-05-19", "2021-06-06", "2021-08-15", "2021-08-16", "2021-09-20", "2021-09-21", "2021-09-22", "2021-10-03", "2021-10-04", "2021-10-09", "2021-10-11", "2021-12-25", "2022-01-01", "2022-01-31", "2022-02-01", "2022-02-02", "2022-03-01", "2022-03-09", "2022-05-05", "2022-05-08", "2022-06-01", "2022-06-06", "2022-08-15", "2022-09-09", "2022-09-10", "2022-09-11", "2022-09-12", "2022-10-03", "2022-10-09", "2022-10-10", "2022-12-25", "2023-01-01", "2023-01-21", "2023-01-22", "2023-01-23", "2023-01-24", "2023-03-01", "2023-05-05", "2023-05-27", "2023-05-29", "2023-06-06", "2023-08-15", "2023-09-28", "2023-09-29", "2023-09-30", "2023-10-02", "2023-10-03", "2023-10-09", "2023-12-25", "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", "2024-04-10", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-01", "2024-10-03", "2024-10-09", "2024-12-25", "2025-01-01", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01", "2025-03-03", "2025-05-05", "2025-05-06", "2025-06-03", "2025-06-06", "2025-08-15", "2025-10-03", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-12-25", "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01", "2026-03-02", "2026-05-01", "2026-05-05", "2026-05-24", "2026-05-25", "2026-06-03", "2026-06-06", "2026-07-17", "2026-08-15", "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03", "2026-10-05", "2026-10-09", "2026-12-25", "2027-01-01", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-03-01", "2027-05-01", "2027-05-03", "2027-05-05", "2027-05-13", "2027-06-06", "2027-07-17", "2027-07-19", "2027-08-15", "2027-08-16", "2027-09-14", "2027-09-15", "2027-09-16", "2027-10-03", "2027-10-04", "2027-10-09", "2027-10-11", "2027-12-25", "2027-12-27", "2028-01-01", "2028-01-26", "2028-01-27", "2028-01-28", "2028-03-01", "2028-04-12", "2028-05-01", "2028-05-02", "2028-05-05", "2028-06-06", "2028-07-17", "2028-08-15", "2028-10-02", "2028-10-03", "2028-10-04", "2028-10-05", "2028-10-09", "2028-12-25", "2029-01-01", "2029-02-12", "2029-02-13", "2029-02-14", "2029-03-01", "2029-05-01", "2029-05-05", "2029-05-07", "2029-05-20", "2029-05-21", "2029-06-06", "2029-07-17", "2029-08-15", "2029-09-21", "2029-09-22", "2029-09-23", "2029-09-24", "2029-10-03", "2029-10-09", "2029-12-25", "2030-01-01", "2030-02-02", "2030-02-03", "2030-02-04", "2030-02-05", "2030-03-01", "2030-04-03", "2030-05-01", "2030-05-05", "2030-05-06", "2030-05-09", "2030-06-06", "2030-06-12", "2030-07-17", "2030-08-15", "2030-09-11", "2030-09-12", "2030-09-13", "2030-10-03", "2030-10-09", "2030-12-25", "2031-01-01", "2031-01-22", "2031-01-23", "2031-01-24", "2031-03-01", "2031-03-03", "2031-05-01", "2031-05-05", "2031-05-28", "2031-06-06", "2031-07-17", "2031-08-15", "2031-09-30", "2031-10-01", "2031-10-02", "2031-10-03", "2031-10-09", "2031-12-25", "2032-01-01", "2032-02-10", "2032-02-11", "2032-02-12", "2032-03-01", "2032-04-14", "2032-05-01", "2032-05-03", "2032-05-05", "2032-05-16", "2032-05-17", "2032-06-06", "2032-07-17", "2032-07-19", "2032-08-15", "2032-08-16", "2032-09-18", "2032-09-19", "2032-09-20", "2032-09-21", "2032-10-03", "2032-10-04", "2032-10-09", "2032-10-11", "2032-12-25", "2032-12-27", "2033-01-01", "2033-01-30", "2033-01-31", "2033-02-01", "2033-02-02", "2033-03-01", "2033-05-01", "2033-05-02", "2033-05-05", "2033-05-06", "2033-06-06", "2033-07-17", "2033-07-18", "2033-08-15", "2033-09-07", "2033-09-08", "2033-09-09", "2033-10-03", "2033-10-09", "2033-10-10", "2033-12-25", "2033-12-26", "2034-01-01", "2034-02-18", "2034-02-19", "2034-02-20", "2034-02-21", "2034-03-01", "2034-05-01", "2034-05-05", "2034-05-25", "2034-06-06", "2034-06-14", "2034-07-17", "2034-08-15", "2034-09-26", "2034-09-27", "2034-09-28", "2034-10-03", "2034-10-09", "2034-12-25", "2035-01-01", "2035-02-07", "2035-02-08", "2035-02-09", "2035-03-01", "2035-04-04", "2035-05-01", "2035-05-05", "2035-05-07", "2035-05-15", "2035-06-06", "2035-07-17", "2035-08-15", "2035-09-15", "2035-09-16", "2035-09-17", "2035-09-18", "2035-10-03", "2035-10-09", "2035-12-25", "2036-01-01", "2036-01-27", "2036-01-28", "2036-01-29", "2036-01-30", "2036-03-01", "2036-03-03", "2036-04-09", "2036-05-01", "2036-05-03", "2036-05-05", "2036-05-06", "2036-06-06", "2036-07-17", "2036-08-15", "2036-10-03", "2036-10-04", "2036-10-05", "2036-10-06", "2036-10-07", "2036-10-09", "2036-12-25"]);
-const BUILD_TIME="2026-09-10T20:41:54";
+const BUILD_TIME="2026-09-10T21:15:45";
 const $=id=>document.getElementById(id);
 const num=n=>Number(n)||0;
 const won=n=>num(n).toLocaleString('ko-KR')+'원';
@@ -601,7 +619,7 @@ let session=null;
 let dailyRows=[],manualRows=[],preentryRows=[],supplyItems=[],supplyRows=[],refundRows=[],purchaseVendors=[],purchaseRows=[],days={},manualByDate={};
 let now=new Date(),dailyDate='',year=now.getFullYear(),month=now.getMonth(),annualYear=year,supplyYear=year,supplyMonth=month;
 let editingManualKey=null,editingSupplyKey=null,editingPreentryKey=null,refundOriginal=null,lastLoadAt=0;
-let washcardRows=[],washcardSortDesc=true,preentryReconciling=false,purchaseDbReady=true,editingPurchaseKey=null,editingVendorKey=null,purchaseSelectedDate=null,purchaseYear=year,purchaseMonth=month;
+let washcardRows=[],washcardSortDesc=true,preentryReconciling=false,purchaseDbReady=true,editingPurchaseKey=null,editingVendorKey=null,purchaseSelectedDate=null,purchaseYear=year,purchaseMonth=month,purchaseAnnualYear=year,purchasePanel='entry';
 
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function parseDate(k){return new Date(k+'T00:00:00')}
@@ -634,7 +652,6 @@ function showApp(){
   $('preentryAdminForm').classList.toggle('hidden',session.role!=='admin');
   $('refundAdminForm').classList.toggle('hidden',session.role!=='admin');
   $('purchaseAdminForm').classList.toggle('hidden',session.role!=='admin');
-  $('vendorAdminBox').classList.toggle('hidden',session.role!=='admin');
   $('peActionHead').style.display=session.role==='admin'?'':'none';
   $('refundActionHead').style.display=session.role==='admin'?'':'none';
   $('purchaseActionHead').style.display=session.role==='admin'?'':'none';
@@ -686,15 +703,16 @@ function moveDaily(delta){
   let d=parseDate(dailyDate);d.setDate(d.getDate()+delta);dailyDate=dateKey(d);renderDaily()
 }
 function renderDaily(){
-  const d=parseDate(dailyDate),wd=['일','월','화','수','목','금','토'][d.getDay()],r=days[dailyDate];
+  const d=parseDate(dailyDate),wd=['일','월','화','수','목','금','토'][d.getDay()],stored=days[dailyDate],dayPurchases=purchaseRows.filter(x=>x.purchase_date===dailyDate),purchaseTotal=dayPurchases.reduce((a,x)=>a+num(x.amount),0),r=stored||{total_sales:0,cash_total:0,card_total:0,pending_count:0,unattended_cash:0,manual_cash:0,manual_account:0,card_sales:0,manual_card:0,card_count:0,supply_cash:0,supply_account:0,supply_card:0,refund_total:0};
   $('dailyTitle').textContent=`${dailyDate} (${wd})`;
-  $('dailyEmpty').classList.toggle('hidden',!!r);$('dailyContent').classList.toggle('hidden',!r);
-  if(!r){$('dailyState').textContent='미집계';return}
+  const hasContent=!!stored||purchaseTotal>0;$('dailyEmpty').classList.toggle('hidden',hasContent);$('dailyContent').classList.toggle('hidden',!hasContent);
+  if(!hasContent){$('dailyState').textContent='미집계';return}
   $('dTotal').textContent=won(r.total_sales);$('dCash').textContent=won(r.cash_total);$('dCard').textContent=won(r.card_total);
   $('dPending').textContent=num(r.pending_count).toLocaleString()+'건';
   $('dUnattended').textContent=won(r.unattended_cash);$('dManualCash').textContent=won(r.manual_cash);$('dManualAccount').textContent=won(r.manual_account);
   $('dCardSales').textContent=won(r.card_sales);$('dManualCard').textContent=won(r.manual_card);$('dCardCount').textContent=num(r.card_count).toLocaleString()+'건';$('dSupplyCash').textContent=won(r.supply_cash);$('dSupplyAccount').textContent=won(r.supply_account);$('dSupplyCard').textContent=won(r.supply_card);$('dRefund').textContent='-'+won(r.refund_total);
-  $('dailyState').textContent=num(r.pending_count)?`미확인 ${num(r.pending_count)}건`:'확인 완료';
+  $('dailyPurchaseLine').classList.toggle('hidden',purchaseTotal<=0);$('dPurchaseTotal').textContent=won(purchaseTotal);
+  $('dailyState').textContent=stored?(num(r.pending_count)?`미확인 ${num(r.pending_count)}건`:'확인 완료'):'매출 미집계';
   const list=manualByDate[dailyDate]||[],labels={pending:'미확인',record:'기록',ignore:'무시'};
   $('manualWrap').classList.toggle('hidden',list.length===0);
   $('manualBody').innerHTML=list.map(x=>`<tr>
@@ -827,8 +845,9 @@ window.addEventListener('afterprint',()=>{
 });
 
 function printDailySales(){
-  const r=days[dailyDate];
-  if(!r){alert('해당 날짜의 저장된 매출 자료가 없습니다.');return}
+  const stored=days[dailyDate],dayPurchases=purchaseRows.filter(x=>x.purchase_date===dailyDate),purchaseTotal=dayPurchases.reduce((a,x)=>a+num(x.amount),0);
+  if(!stored&&!purchaseTotal){alert('해당 날짜의 저장된 매출/매입 자료가 없습니다.');return}
+  const r=stored||{total_sales:0,cash_total:0,card_total:0,unattended_cash:0,card_sales:0,pending_count:0};
   const manuals=(manualByDate[dailyDate]||[]).filter(x=>x.decision==='record');
   const ignored=(manualByDate[dailyDate]||[]).filter(x=>x.decision==='ignore');
   const supplies=supplyRows.filter(x=>x.sale_date===dailyDate);
@@ -883,7 +902,7 @@ function printDailySales(){
       <tr><th>수동충전 기록</th><td class="num">${cs.manualCount}건</td><th>세차용품</th><td class="num">${cs.supplyCount}건</td></tr>
       <tr><th>미확인 수동충전</th><td class="num ${num(r.pending_count)?'p-pending':''}">${num(r.pending_count)}건</td><th>무시 수동충전</th><td class="num">${ignored.length}건</td></tr>
     </tbody></table>
-    ${category}${manualDetail}${supplyDetail}${refundDetail}
+    ${category}${manualDetail}${supplyDetail}${refundDetail}${purchaseTotal?`<div class="p-section">매입</div><table><tbody><tr><th>해당일 매입합계</th><td class="num"><b>${won(purchaseTotal)}</b></td></tr></tbody></table>`:''}
     <div class="p-footer">출력일시: ${printTimeText()} · 무시 수동충전은 매출 합계에서 제외</div>
   `);
 }
@@ -1425,136 +1444,240 @@ async function voidRefund(key){
   }catch(e){setStatus('반품 취소 실패: '+e.message,true)}
 }
 
-function uWon(v){const n=Number(String(v||'').replace(/[,원\s]/g,''))||0;return n.toLocaleString()+'원'}
-function purchaseAmountFromInputs(){
-  const q=Number(String($('purchaseQty').value||'').replace(',','.'))||0;
-  const u=Number(String($('purchaseUnitPrice').value||'').replace(/[,원\s]/g,''))||0;
-  return Math.round(q*u);
+function parsePurchaseMoney(text){
+  const s=String(text||'').replace(/,/g,'');
+  const hits=[];
+  const re=/(\d+(?:\.\d+)?)\s*(만원|천원|원|만)(?![가-힣])/g;
+  let m;
+  while((m=re.exec(s))){
+    let v=Number(m[1]);
+    if(m[2]==='만원'||m[2]==='만')v*=10000;
+    else if(m[2]==='천원')v*=1000;
+    hits.push({value:Math.round(v),raw:m[0],index:m.index});
+  }
+  if(hits.length)return hits[hits.length-1];
+  // Common typo: 200000월. Never treat ordinary 9월/13월 as money.
+  const typo=[...s.matchAll(/(\d{4,})\s*월/g)];
+  if(typo.length){
+    const x=typo[typo.length-1];
+    return {value:Number(x[1]),raw:x[0],index:x.index};
+  }
+  const bare=[...s.matchAll(/(?:^|\s)(\d{4,})(?=\s|$)/g)];
+  if(bare.length){
+    const x=bare[bare.length-1];
+    return {value:Number(x[1]),raw:x[1],index:(x.index||0)+x[0].indexOf(x[1])};
+  }
+  return null;
 }
-function recalcPurchaseForm(){
-  const calc=purchaseAmountFromInputs();
-  if(!editingPurchaseKey||!$('purchaseAmount').dataset.manual)$('purchaseAmount').value=calc?String(calc):'';
-  $('purchaseCalcText').textContent=`${$('purchaseQty').value||0} ${$('purchaseUnit').value||''} × ${uWon($('purchaseUnitPrice').value)} = ${calc.toLocaleString()}원`;
+function parsePurchaseDate(text){
+  const s=String(text||'');
+  const today=new Date();
+  if(/오늘/.test(s))return {key:dateKey(today),raw:'오늘'};
+  if(/어제/.test(s)){const d=new Date(today);d.setDate(d.getDate()-1);return {key:dateKey(d),raw:'어제'}}
+  let m=s.match(/(20\d{2})[년.\-\/]\s*(\d{1,2})[월.\-\/]\s*(\d{1,2})일?/);
+  if(m)return {key:`${m[1]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[3])).padStart(2,'0')}`,raw:m[0]};
+  m=s.match(/(\d{1,2})월\s*(\d{1,2})일/);
+  if(m)return {key:`${today.getFullYear()}-${String(Number(m[1])).padStart(2,'0')}-${String(Number(m[2])).padStart(2,'0')}`,raw:m[0]};
+  m=s.match(/(20\d{2})-(\d{1,2})-(\d{1,2})/);
+  if(m)return {key:`${m[1]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[3])).padStart(2,'0')}`,raw:m[0]};
+  return {key:dateKey(today),raw:''};
 }
-function activePurchaseVendors(){return purchaseVendors.filter(v=>v.is_active!==false)}
+function inferPurchasePurpose(text){
+  const s=String(text||'').toLowerCase();
+  if(/as|수리|수선|정비|출장|고장/.test(s))return 'AS/수리';
+  if(/호스|모터|필터|부품|밸브|노즐|센서/.test(s))return '부품';
+  if(/세차|타월|케미컬|약품|왁스|폼건|스펀지/.test(s))return '세차용품';
+  if(/전기|수도|가스|관리비|통신|인터넷/.test(s))return '공과금';
+  if(/청소/.test(s))return '청소';
+  if(/소모품|장갑|휴지|봉투|테이프/.test(s))return '소모품';
+  return '기타';
+}
+function findPurchaseVendorInText(text){
+  const s=String(text||'');
+  const known=[...purchaseVendors].sort((a,b)=>String(b.vendor_name||'').length-String(a.vendor_name||'').length);
+  const found=known.find(v=>v.vendor_name&&s.includes(v.vendor_name));
+  if(found)return found.vendor_name;
+  const d=parsePurchaseDate(s);
+  let rest=s;
+  if(d.raw)rest=rest.replace(d.raw,'').trim();
+  const m=rest.match(/^(.{1,30}?)(?:에서|에게|에)\s+/);
+  return m?m[1].trim():'';
+}
+function parsePurchaseNatural(){
+  const raw=$('purchaseNatural').value.trim();
+  if(!raw){$('purchaseParseResult').textContent='입력할 내용을 적어주세요.';return}
+  const d=parsePurchaseDate(raw),money=parsePurchaseMoney(raw);
+  const qmatch=raw.match(/(\d+(?:\.\d+)?)\s*(개|박스|세트|통|봉|팩|롤|ea)\b/i);
+  const qty=qmatch?Number(qmatch[1]):1;
+  const vendor=findPurchaseVendorInText(raw);
+  const purpose=inferPurchasePurpose(raw);
+  let item=raw;
+  if(d.raw)item=item.replace(d.raw,' ');
+  if(money?.raw)item=item.replace(money.raw,' ');
+  if(qmatch)item=item.replace(qmatch[0],' ');
+  if(vendor)item=item.replace(vendor,' ').replace(/^\s*(에서|에게|에)\s*/,' ');
+  item=item.replace(/\b(구매|구입|결제|매입|샀음|샀다)\b/g,' ').replace(/\s+/g,' ').trim();
+  if(!item)item=purpose==='기타'?'매입':purpose;
+
+  $('purchaseDate').value=d.key;
+  $('purchaseVendorName').value=vendor;
+  $('purchaseItem').value=item;
+  $('purchasePurpose').value=purpose;
+  $('purchaseQty').value=String(qty);
+  if(money)$('purchaseAmount').value=String(money.value);
+  $('purchaseParseResult').innerHTML=
+    `<b>자동분류:</b> ${esc(d.key)} · ${esc(vendor||'구입처 미확인')} · ${esc(item)} · ${esc(purpose)} · 수량 ${qty}${money?` · ${won(money.value)}`:' · 금액 미확인'}`;
+  if(!vendor||!money)$('purchaseParseResult').innerHTML+=' <span style="color:#b00020">→ 빠진 항목만 아래에서 입력하세요.</span>';
+}
 function renderPurchaseVendorOptions(){
-  const active=activePurchaseVendors(),current=$('purchaseVendor').value,filterCurrent=$('purchaseVendorFilter').value;
-  $('purchaseVendor').innerHTML=active.map(v=>`<option value="${esc(v.vendor_key)}">${esc(v.vendor_name)}</option>`).join('');
-  if(active.some(v=>v.vendor_key===current))$('purchaseVendor').value=current;
-  $('purchaseVendorFilter').innerHTML='<option value="">전체 구입처</option>'+purchaseVendors.map(v=>`<option value="${esc(v.vendor_key)}">${esc(v.vendor_name)}</option>`).join('');
-  if(purchaseVendors.some(v=>v.vendor_key===filterCurrent))$('purchaseVendorFilter').value=filterCurrent;
+  $('purchaseVendorNames').innerHTML=purchaseVendors.filter(v=>v.is_active!==false).map(v=>`<option value="${esc(v.vendor_name)}"></option>`).join('');
 }
 function resetPurchaseForm(){
-  editingPurchaseKey=null;$('purchaseDate').value=dateKey(new Date());$('purchaseItem').value='';$('purchaseCategory').value='';
-  $('purchaseQty').value='1';$('purchaseUnit').value='개';$('purchaseUnitPrice').value='';$('purchaseAmount').value='';delete $('purchaseAmount').dataset.manual;
-  $('purchasePayStatus').value='결제완료';$('purchasePayMethod').value='계좌';$('purchaseMemo').value='';$('purchaseError').textContent='';
-  renderPurchaseVendorOptions();recalcPurchaseForm();
+  editingPurchaseKey=null;$('purchaseNatural').value='';$('purchaseDate').value=dateKey(new Date());$('purchaseVendorName').value='';
+  $('purchaseItem').value='';$('purchasePurpose').value='';$('purchaseQty').value='1';$('purchaseAmount').value='';$('purchaseMemo').value='';
+  $('purchaseParseResult').textContent='';$('purchaseError').textContent='';renderPurchaseVendorOptions();
 }
-function purchaseMonthRows(){
-  const prefix=`${purchaseYear}-${String(purchaseMonth+1).padStart(2,'0')}-`;
+function purchaseMonthRows(yearValue=purchaseYear,monthValue=purchaseMonth){
+  const prefix=`${yearValue}-${String(monthValue+1).padStart(2,'0')}-`;
   return purchaseRows.filter(r=>String(r.purchase_date||'').startsWith(prefix));
 }
-function filteredPurchaseRows(){
-  let rows=purchaseMonthRows();
-  if(purchaseSelectedDate)rows=rows.filter(r=>r.purchase_date===purchaseSelectedDate);
-  const vf=$('purchaseVendorFilter').value;if(vf)rows=rows.filter(r=>r.vendor_key===vf);
-  const q=$('purchaseSearch').value.trim().toLowerCase();
-  if(q)rows=rows.filter(r=>(`${r.item_name||''} ${r.memo||''} ${r.vendor_name||''} ${r.category||''}`).toLowerCase().includes(q));
-  return rows.sort((a,b)=>String(b.purchase_date||'').localeCompare(String(a.purchase_date||''))||String(b.created_at||'').localeCompare(String(a.created_at||'')));
-}
-function renderPurchase(){
-  $('purchaseDbNotice').classList.toggle('hidden',purchaseDbReady);
-  $('purchaseMonthTitle').textContent=`${purchaseYear}년 ${purchaseMonth+1}월 매입`;
-  renderPurchaseVendorOptions();
-  const rows=purchaseMonthRows(),total=rows.reduce((a,r)=>a+num(r.amount),0),unpaid=rows.filter(r=>r.payment_status==='미지급').reduce((a,r)=>a+num(r.amount),0);
-  $('purchaseMonthSummary').textContent=`월 매입 ${won(total)} · ${rows.length.toLocaleString()}건${unpaid?` · 미지급 ${won(unpaid)}`:''}`;
-  const first=new Date(purchaseYear,purchaseMonth,1).getDay(),count=new Date(purchaseYear,purchaseMonth+1,0).getDate();let cal='';
-  for(let i=0;i<42;i++){
-    const dd=i-first+1;if(dd<1||dd>count){cal+='<button class="day empty" disabled></button>';continue}
-    const k=`${purchaseYear}-${String(purchaseMonth+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
-    const dr=rows.filter(r=>r.purchase_date===k),sum=dr.reduce((a,r)=>a+num(r.amount),0),dow=parseDate(k).getDay(),red=dow===0||dow===6||HOLIDAYS.has(k),selected=purchaseSelectedDate===k?' today':'';
-    cal+=`<button class="day${red?' red-day':''}${selected}" data-pdate="${k}"><div class="number">${dd}</div>${dr.length?`<div class="sales">매입 ${sum.toLocaleString()}</div><div class="line">${dr.length}건</div>`:''}</button>`;
-  }
-  $('purchaseCalendar').innerHTML=cal;
-  document.querySelectorAll('.day[data-pdate]').forEach(b=>b.onclick=()=>{purchaseSelectedDate=b.dataset.pdate;$('purchaseDate').value=purchaseSelectedDate;renderPurchase()});
-  const list=filteredPurchaseRows();
-  $('purchaseListTitle').textContent=purchaseSelectedDate?`${purchaseSelectedDate} 매입 장부`:`${purchaseYear}년 ${purchaseMonth+1}월 매입 장부`;
-  $('purchaseBody').innerHTML=list.map(r=>`<tr>
+function renderPurchaseRecent(){
+  const rows=[...purchaseRows].sort((a,b)=>String(b.purchase_date||'').localeCompare(String(a.purchase_date||''))||String(b.created_at||'').localeCompare(String(a.created_at||''))).slice(0,12);
+  $('purchaseRecentBody').innerHTML=rows.map(r=>`<tr>
     <td>${esc(r.purchase_date)}</td><td>${esc(r.vendor_name||'')}</td><td>${esc(r.item_name||'')}</td><td>${esc(r.category||'')}</td>
-    <td class="num">${Number(r.quantity||0).toLocaleString()} ${esc(r.unit||'')}</td><td class="num">${won(r.unit_price)}</td><td class="num"><b>${won(r.amount)}</b></td>
-    <td>${esc(r.payment_status||'')}</td><td>${esc(r.payment_method||'')}</td><td>${esc(r.memo||'')}</td>
+    <td class="num">${Number(r.quantity||1).toLocaleString()}</td><td class="num"><b>${won(r.amount)}</b></td>
     ${session?.role==='admin'?`<td><button class="edit-btn purchase-edit" data-key="${esc(r.purchase_key)}">수정</button> <button class="edit-btn purchase-delete" data-key="${esc(r.purchase_key)}">삭제</button></td>`:''}
   </tr>`).join('');
   document.querySelectorAll('.purchase-edit').forEach(b=>b.onclick=()=>editPurchase(b.dataset.key));
   document.querySelectorAll('.purchase-delete').forEach(b=>b.onclick=()=>deletePurchase(b.dataset.key));
-  renderVendorList();
+}
+function renderPurchaseMonth(){
+  $('purchaseMonthTitle').textContent=`${purchaseYear}년 ${purchaseMonth+1}월 매입`;
+  const rows=purchaseMonthRows(),total=rows.reduce((a,r)=>a+num(r.amount),0);
+  $('purchaseMonthSummary').textContent=`${rows.length.toLocaleString()}건 · ${won(total)}`;
+  const first=new Date(purchaseYear,purchaseMonth,1).getDay(),count=new Date(purchaseYear,purchaseMonth+1,0).getDate();let cal='';
+  for(let i=0;i<42;i++){
+    const dd=i-first+1;if(dd<1||dd>count){cal+='<button class="day empty" disabled></button>';continue}
+    const k=`${purchaseYear}-${String(purchaseMonth+1).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+    const dr=rows.filter(r=>r.purchase_date===k),sum=dr.reduce((a,r)=>a+num(r.amount),0),dow=parseDate(k).getDay(),red=dow===0||dow===6||HOLIDAYS.has(k);
+    cal+=`<button class="day${red?' red-day':''}${purchaseSelectedDate===k?' today':''}" data-pdate="${k}"><div class="number">${dd}</div>${dr.length?`<div class="sales">매입 ${sum.toLocaleString()}</div><div class="line">${dr.length}건</div>`:''}</button>`;
+  }
+  $('purchaseCalendar').innerHTML=cal;
+  document.querySelectorAll('.day[data-pdate]').forEach(b=>b.onclick=()=>{purchaseSelectedDate=b.dataset.pdate;renderPurchaseMonth()});
+  const detail=purchaseSelectedDate?rows.filter(r=>r.purchase_date===purchaseSelectedDate):[];
+  $('purchaseDayDetail').classList.toggle('hidden',!purchaseSelectedDate);
+  if(purchaseSelectedDate){
+    const sum=detail.reduce((a,r)=>a+num(r.amount),0);
+    $('purchaseDayDetail').innerHTML=`<b>${purchaseSelectedDate}</b> · ${detail.length}건 · <b>${won(sum)}</b>`+
+      (detail.length?`<div style="margin-top:7px">${detail.map(r=>`<div style="padding:4px 0;border-top:1px solid #eee">${esc(r.vendor_name)} · ${esc(r.item_name)}${num(r.quantity)!==1?` × ${num(r.quantity)}`:''} · <b>${won(r.amount)}</b></div>`).join('')}</div>`:'');
+  }
+}
+function renderPurchaseYear(){
+  $('purchaseYearTitle').textContent=`${purchaseAnnualYear}년 매입`;
+  let total=0,count=0,html='';
+  for(let m=0;m<12;m++){
+    const rows=purchaseMonthRows(purchaseAnnualYear,m),sum=rows.reduce((a,r)=>a+num(r.amount),0);
+    total+=sum;count+=rows.length;
+    html+=`<button class="month-card" data-pmonth="${m}"><div class="month">${m+1}월</div><div class="sales">${won(sum)}</div><div class="muted">${rows.length}건</div></button>`;
+  }
+  $('purchaseYearSummary').textContent=`${count.toLocaleString()}건 · ${won(total)}`;
+  $('purchaseYearGrid').innerHTML=html;
+  document.querySelectorAll('.month-card[data-pmonth]').forEach(b=>b.onclick=()=>{purchaseYear=purchaseAnnualYear;purchaseMonth=Number(b.dataset.pmonth);showPurchasePanel('month')});
+}
+function renderVendorList(){
+  $('vendorList').innerHTML=purchaseVendors.map(v=>`<div style="border-top:1px solid #ddd;padding:7px 2px"><b>${esc(v.vendor_name)}</b>${v.is_active===false?' <span class="tag ignore">중지</span>':''}<span style="color:#666;margin-left:8px">${esc(v.phone||'')}</span>${session?.role==='admin'?`<span style="float:right"><button class="edit-btn vendor-edit" data-key="${esc(v.vendor_key)}">편집</button> <button class="edit-btn vendor-toggle" data-key="${esc(v.vendor_key)}">${v.is_active===false?'사용':'중지'}</button></span>`:''}<div style="font-size:11px;color:#777">${esc(v.memo||'')}</div></div>`).join('')||'<div style="font-size:11px;color:#888">등록된 구입처가 없습니다.</div>';
+  document.querySelectorAll('.vendor-edit').forEach(b=>b.onclick=()=>editVendor(b.dataset.key));document.querySelectorAll('.vendor-toggle').forEach(b=>b.onclick=()=>toggleVendor(b.dataset.key));
+}
+function showPurchasePanel(mode){
+  purchasePanel=mode;
+  $('purchaseMonthPanel').classList.toggle('hidden',mode!=='month');
+  $('purchaseYearPanel').classList.toggle('hidden',mode!=='year');
+  $('vendorManagerPanel').classList.toggle('hidden',mode!=='vendor');
+  if(mode==='month'){purchaseSelectedDate=null;renderPurchaseMonth()}
+  else if(mode==='year')renderPurchaseYear();
+  else if(mode==='vendor')renderVendorList();
+}
+function renderPurchase(){
+  $('purchaseDbNotice').classList.toggle('hidden',purchaseDbReady);
+  renderPurchaseVendorOptions();renderPurchaseRecent();
+  $('purchaseMonthPanel').classList.toggle('hidden',purchasePanel!=='month');
+  $('purchaseYearPanel').classList.toggle('hidden',purchasePanel!=='year');
+  $('vendorManagerPanel').classList.toggle('hidden',purchasePanel!=='vendor');
+  if(purchasePanel==='month')renderPurchaseMonth();
+  if(purchasePanel==='year')renderPurchaseYear();
+  if(purchasePanel==='vendor')renderVendorList();
 }
 function editPurchase(key){
   const r=purchaseRows.find(x=>x.purchase_key===key);if(!r)return;editingPurchaseKey=key;
-  $('purchaseDate').value=r.purchase_date;$('purchaseVendor').value=r.vendor_key||'';$('purchaseItem').value=r.item_name||'';$('purchaseCategory').value=r.category||'';
-  $('purchaseQty').value=String(r.quantity??1);$('purchaseUnit').value=r.unit||'개';$('purchaseUnitPrice').value=String(r.unit_price??0);$('purchaseAmount').value=String(r.amount??0);$('purchaseAmount').dataset.manual='1';
-  $('purchasePayStatus').value=r.payment_status||'결제완료';$('purchasePayMethod').value=r.payment_method||'계좌';$('purchaseMemo').value=r.memo||'';$('purchaseError').textContent='';
-  $('purchaseAdminForm').scrollIntoView({behavior:'smooth',block:'start'});
+  $('purchaseDate').value=r.purchase_date;$('purchaseVendorName').value=r.vendor_name||'';$('purchaseItem').value=r.item_name||'';
+  $('purchasePurpose').value=r.category||'';$('purchaseQty').value=String(r.quantity??1);$('purchaseAmount').value=String(r.amount??0);$('purchaseMemo').value=r.memo||'';
+  $('purchaseNatural').value='';$('purchaseParseResult').textContent='수정 중';$('purchaseAdminForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function ensurePurchaseVendor(name){
+  const trimmed=String(name||'').trim();
+  if(!trimmed)throw new Error('구입처를 입력하세요.');
+  let v=purchaseVendors.find(x=>x.vendor_name===trimmed);
+  if(v)return v;
+  const nowIso=new Date().toISOString(),key=((crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()).replaceAll('-',''));
+  const body={vendor_key:key,vendor_name:trimmed,is_active:true,created_at:nowIso,local_updated_at:nowIso};
+  await apiWrite('POST','uwash_purchase_vendors?on_conflict=vendor_name',body);
+  v=body;purchaseVendors.push(v);return v;
 }
 async function savePurchase(){
-  if(session?.role!=='admin'||!purchaseDbReady)return;
-  const vendor=purchaseVendors.find(v=>v.vendor_key===$('purchaseVendor').value),purchaseDate=$('purchaseDate').value,itemName=$('purchaseItem').value.trim();
-  const qty=Number(String($('purchaseQty').value||'').replace(',','.')),unitPrice=Number(String($('purchaseUnitPrice').value||'').replace(/[,원\s]/g,'')),amount=Number(String($('purchaseAmount').value||'').replace(/[,원\s]/g,''));
-  if(!purchaseDate){$('purchaseError').textContent='날짜를 선택하세요.';return}
-  if(!vendor){$('purchaseError').textContent='구입처를 선택하세요.';return}
-  if(!itemName){$('purchaseError').textContent='상품명을 입력하세요.';return}
-  if(!Number.isFinite(qty)||qty<=0){$('purchaseError').textContent='수량은 0보다 커야 합니다.';return}
-  if(!Number.isFinite(unitPrice)||unitPrice<0){$('purchaseError').textContent='단가를 확인하세요.';return}
-  if(!Number.isFinite(amount)||amount<0){$('purchaseError').textContent='합계를 확인하세요.';return}
-  const nowIso=new Date().toISOString(),key=editingPurchaseKey||((crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()).replaceAll('-','')),old=purchaseRows.find(x=>x.purchase_key===key);
-  const body={purchase_key:key,purchase_date:purchaseDate,vendor_key:vendor.vendor_key,vendor_name:vendor.vendor_name,item_name:itemName,category:$('purchaseCategory').value.trim()||null,
-    quantity:qty,unit:$('purchaseUnit').value.trim()||'개',unit_price:unitPrice,amount,payment_status:$('purchasePayStatus').value,payment_method:$('purchasePayMethod').value,memo:$('purchaseMemo').value.trim()||null,
-    created_at:old?.created_at||nowIso,local_updated_at:nowIso};
+  if(session?.role!=='admin')return;
+  if(!purchaseDbReady){$('purchaseError').textContent='매입 DB가 아직 준비되지 않았습니다. v2.2.0 Migration SQL을 먼저 실행하세요.';return}
+  const purchaseDate=$('purchaseDate').value,vendorName=$('purchaseVendorName').value.trim(),itemName=$('purchaseItem').value.trim();
+  const purpose=$('purchasePurpose').value.trim()||'기타',qty=Number(String($('purchaseQty').value||'').replace(',','.')),amount=Number(String($('purchaseAmount').value||'').replace(/[,원\s]/g,''));
+  if(!purchaseDate){$('purchaseError').textContent='날짜를 입력하세요.';return}
+  if(!vendorName){$('purchaseError').textContent='구입처를 입력하세요.';return}
+  if(!itemName){$('purchaseError').textContent='상품/내용을 입력하세요.';return}
+  if(!Number.isFinite(qty)||qty<=0){$('purchaseError').textContent='수량을 확인하세요.';return}
+  if(!Number.isFinite(amount)||amount<=0){$('purchaseError').textContent='총금액을 입력하세요.';return}
   $('purchaseSave').disabled=true;$('purchaseError').textContent='저장 중...';
   try{
+    const vendor=await ensurePurchaseVendor(vendorName),nowIso=new Date().toISOString(),key=editingPurchaseKey||((crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()).replaceAll('-','')),old=purchaseRows.find(x=>x.purchase_key===key);
+    const body={purchase_key:key,purchase_date:purchaseDate,vendor_key:vendor.vendor_key,vendor_name:vendor.vendor_name,item_name:itemName,category:purpose,quantity:qty,unit:'개',
+      unit_price:Math.round(amount/qty),amount,payment_status:'결제완료',payment_method:'기타',memo:$('purchaseMemo').value.trim()||null,created_at:old?.created_at||nowIso,local_updated_at:nowIso};
     if(editingPurchaseKey)await apiWrite('PATCH','uwash_purchases?purchase_key=eq.'+encodeURIComponent(key),body);else await apiWrite('POST','uwash_purchases?on_conflict=purchase_key',body);
-    purchaseYear=Number(purchaseDate.slice(0,4));purchaseMonth=Number(purchaseDate.slice(5,7))-1;resetPurchaseForm();await loadData();activate('purchase');setStatus('매입 장부를 저장했습니다.');
-  }catch(e){$('purchaseError').textContent='매입 저장 실패: '+e.message}
+    resetPurchaseForm();purchasePanel='entry';await loadData();activate('purchase');setStatus(`매입 ${won(amount)} 저장 완료 · 매출과 별도 기록`);
+  }catch(e){$('purchaseError').textContent='저장 실패: '+e.message}
   finally{$('purchaseSave').disabled=false}
 }
 async function deletePurchase(key){
-  if(session?.role!=='admin'||!confirm('선택한 매입 장부를 삭제할까요?'))return;
-  try{await apiWrite('DELETE','uwash_purchases?purchase_key=eq.'+encodeURIComponent(key),null);await loadData();activate('purchase');setStatus('매입 장부를 삭제했습니다.')}
+  if(session?.role!=='admin'||!confirm('이 매입 기록을 삭제할까요?'))return;
+  try{await apiWrite('DELETE','uwash_purchases?purchase_key=eq.'+encodeURIComponent(key),null);await loadData();activate('purchase');setStatus('매입 기록을 삭제했습니다.')}
   catch(e){setStatus('매입 삭제 실패: '+e.message,true)}
 }
-function resetVendorForm(){editingVendorKey=null;$('vendorName').value='';$('vendorContact').value='';$('vendorPhone').value='';$('vendorBizNo').value='';$('vendorAddress').value='';$('vendorMemo').value='';$('vendorError').textContent=''}
-function renderVendorList(){
-  $('vendorList').innerHTML=purchaseVendors.map(v=>`<div style="border-bottom:1px solid #ddd;padding:7px 2px"><b>${esc(v.vendor_name)}</b>${v.is_active===false?' <span class="tag ignore">중지</span>':''}<div style="font-size:11px;color:#666">${esc(v.contact_name||'')} ${esc(v.phone||'')}</div>${session?.role==='admin'?`<div style="margin-top:4px"><button class="edit-btn vendor-edit" data-key="${esc(v.vendor_key)}">편집</button> <button class="edit-btn vendor-toggle" data-key="${esc(v.vendor_key)}">${v.is_active===false?'사용':'중지'}</button></div>`:''}</div>`).join('')||'<div style="font-size:11px;color:#888">등록된 구입처가 없습니다.</div>';
-  document.querySelectorAll('.vendor-edit').forEach(b=>b.onclick=()=>editVendor(b.dataset.key));document.querySelectorAll('.vendor-toggle').forEach(b=>b.onclick=()=>toggleVendor(b.dataset.key));
-}
+function resetVendorForm(){editingVendorKey=null;$('vendorName').value='';$('vendorPhone').value='';$('vendorMemo').value='';$('vendorError').textContent=''}
 function editVendor(key){
-  const v=purchaseVendors.find(x=>x.vendor_key===key);if(!v)return;editingVendorKey=key;$('vendorName').value=v.vendor_name||'';$('vendorContact').value=v.contact_name||'';$('vendorPhone').value=v.phone||'';$('vendorBizNo').value=v.business_no||'';$('vendorAddress').value=v.address||'';$('vendorMemo').value=v.memo||'';$('vendorError').textContent=''
+  const v=purchaseVendors.find(x=>x.vendor_key===key);if(!v)return;editingVendorKey=key;$('vendorName').value=v.vendor_name||'';$('vendorPhone').value=v.phone||'';$('vendorMemo').value=v.memo||'';$('vendorError').textContent=''
 }
 async function saveVendor(){
-  if(session?.role!=='admin'||!purchaseDbReady)return;
+  if(session?.role!=='admin')return;
+  if(!purchaseDbReady){$('vendorError').textContent='매입 DB가 아직 준비되지 않았습니다.';return}
   const name=$('vendorName').value.trim();if(!name){$('vendorError').textContent='구입처명을 입력하세요.';return}
   const nowIso=new Date().toISOString(),key=editingVendorKey||((crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()).replaceAll('-','')),old=purchaseVendors.find(x=>x.vendor_key===key);
-  const body={vendor_key:key,vendor_name:name,contact_name:$('vendorContact').value.trim()||null,phone:$('vendorPhone').value.trim()||null,business_no:$('vendorBizNo').value.trim()||null,address:$('vendorAddress').value.trim()||null,memo:$('vendorMemo').value.trim()||null,is_active:old?.is_active!==false,created_at:old?.created_at||nowIso,local_updated_at:nowIso};
   try{
     if(editingVendorKey){
-      await apiWrite('PATCH','uwash_purchase_vendors?vendor_key=eq.'+encodeURIComponent(key),body);
+      await apiWrite('PATCH','uwash_purchase_vendors?vendor_key=eq.'+encodeURIComponent(key),{vendor_name:name,phone:$('vendorPhone').value.trim()||null,memo:$('vendorMemo').value.trim()||null,local_updated_at:nowIso});
       await apiWrite('PATCH','uwash_purchases?vendor_key=eq.'+encodeURIComponent(key),{vendor_name:name,local_updated_at:nowIso});
     }else{
-      await apiWrite('POST','uwash_purchase_vendors?on_conflict=vendor_key',body);
+      await apiWrite('POST','uwash_purchase_vendors?on_conflict=vendor_name',{vendor_key:key,vendor_name:name,phone:$('vendorPhone').value.trim()||null,memo:$('vendorMemo').value.trim()||null,is_active:true,created_at:nowIso,local_updated_at:nowIso});
     }
-    resetVendorForm();await loadData();activate('purchase');setStatus('구입처를 저장했습니다.');
-  }
-  catch(e){$('vendorError').textContent='구입처 저장 실패: '+e.message}
+    resetVendorForm();await loadData();activate('purchase');showPurchasePanel('vendor');setStatus('구입처를 저장했습니다.');
+  }catch(e){$('vendorError').textContent='구입처 저장 실패: '+e.message}
 }
 async function toggleVendor(key){
   const v=purchaseVendors.find(x=>x.vendor_key===key);if(!v)return;
-  try{await apiWrite('PATCH','uwash_purchase_vendors?vendor_key=eq.'+encodeURIComponent(key),{is_active:v.is_active===false,local_updated_at:new Date().toISOString()});await loadData();activate('purchase')}
+  try{await apiWrite('PATCH','uwash_purchase_vendors?vendor_key=eq.'+encodeURIComponent(key),{is_active:v.is_active===false,local_updated_at:new Date().toISOString()});await loadData();activate('purchase');showPurchasePanel('vendor')}
   catch(e){setStatus('구입처 상태 변경 실패: '+e.message,true)}
 }
 function printPurchaseMonth(){
-  const rows=purchaseMonthRows().sort((a,b)=>String(a.purchase_date).localeCompare(String(b.purchase_date))),total=rows.reduce((a,r)=>a+num(r.amount),0),unpaid=rows.filter(r=>r.payment_status==='미지급').reduce((a,r)=>a+num(r.amount),0),byVendor={};
-  for(const r of rows)byVendor[r.vendor_name]=(byVendor[r.vendor_name]||0)+num(r.amount);
-  showPrintDocument(`<div class="p-title">${purchaseYear}년 ${purchaseMonth+1}월 유워시 매입 장부</div><table class="p-summary"><tr><td>월 매입합계</td><td class="num">${won(total)}</td></tr><tr><td>미지급</td><td class="num">${won(unpaid)}</td></tr></table><div class="p-section">구입처별 합계</div><table><thead><tr><th>구입처</th><th>합계</th></tr></thead><tbody>${Object.entries(byVendor).map(([k,v])=>`<tr><td>${esc(k)}</td><td class="num">${won(v)}</td></tr>`).join('')}</tbody></table><div class="p-section">매입 내역</div><table><thead><tr><th>날짜</th><th>구입처</th><th>상품명</th><th>수량</th><th>단가</th><th>합계</th><th>결제</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.purchase_date)}</td><td>${esc(r.vendor_name)}</td><td>${esc(r.item_name)}</td><td class="num">${Number(r.quantity).toLocaleString()} ${esc(r.unit||'')}</td><td class="num">${won(r.unit_price)}</td><td class="num">${won(r.amount)}</td><td>${esc(r.payment_status)}</td></tr>`).join('')}</tbody></table><div class="p-footer">출력일시: ${printTimeText()}</div>`);
+  const rows=purchaseMonthRows().sort((a,b)=>String(a.purchase_date).localeCompare(String(b.purchase_date))),total=rows.reduce((a,r)=>a+num(r.amount),0);
+  showPrintDocument(`<div class="p-title">${purchaseYear}년 ${purchaseMonth+1}월 매입</div>${printSummaryTable('매입',total,0,0)}
+    <table><thead><tr><th>날짜</th><th>구입처</th><th>상품/내용</th><th>용도</th><th>수량</th><th>금액</th></tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${esc(r.purchase_date)}</td><td>${esc(r.vendor_name)}</td><td>${esc(r.item_name)}</td><td>${esc(r.category||'')}</td><td class="num">${num(r.quantity)}</td><td class="num">${won(r.amount)}</td></tr>`).join('')}
+    </tbody></table><div class="p-footer">출력일시: ${printTimeText()} · 매입은 매출합계와 별도 데이터</div>`);
 }
 
 function normalizeWashcard(value){
@@ -1646,7 +1769,7 @@ function boot(){
 }
 
 $('loginBtn').onclick=signIn;$('password').onkeydown=e=>{if(e.key==='Enter')signIn()};$('logoutBtn').onclick=logout;$('refreshBtn').onclick=loadData;
-$('dailyTab').onclick=()=>activate('daily');$('monthTab').onclick=()=>activate('month');$('yearTab').onclick=()=>activate('year');$('preentryTab').onclick=()=>activate('preentry');$('supplyTab').onclick=()=>activate('supply');$('refundTab').onclick=()=>activate('refund');$('purchaseTab').onclick=()=>activate('purchase');$('washcardTab').onclick=()=>activate('washcard');
+$('dailyTab').onclick=()=>activate('daily');$('monthTab').onclick=()=>activate('month');$('yearTab').onclick=()=>activate('year');$('preentryTab').onclick=()=>activate('preentry');$('supplyTab').onclick=()=>activate('supply');$('refundTab').onclick=()=>activate('refund');$('purchaseTab').onclick=()=>{purchasePanel='entry';activate('purchase')};$('washcardTab').onclick=()=>activate('washcard');
 $('printDaily').onclick=printDailySales;$('printMonth').onclick=printMonthSales;$('printYear').onclick=printYearSales;
 $('peSave').onclick=savePreentry;$('pemClose').onclick=closePreentryEditor;$('pemSave').onclick=savePreentryEdit;$('preentryEditModal').onclick=e=>{if(e.target===$('preentryEditModal'))closePreentryEditor()};
 $('peComment').onchange=()=>{const c=$('peComment').value||'';if(c.includes('기기오류')||c.includes('청소'))$('peDecision').value='ignore';};
@@ -1654,12 +1777,15 @@ $('washcardSearchBtn').onclick=searchWashcard;$('washcardQuery').onkeydown=e=>{i
 $('prevDay').onclick=()=>moveDaily(-1);$('nextDay').onclick=()=>moveDaily(1);$('todayDay').onclick=()=>{dailyDate=dateKey(new Date());renderDaily()};
 $('prevMonth').onclick=()=>{month--;if(month<0){month=11;year--}renderMonth()};$('nextMonth').onclick=()=>{month++;if(month>11){month=0;year++}renderMonth()};$('thisMonth').onclick=()=>{const d=new Date();year=d.getFullYear();month=d.getMonth();renderMonth()};
 $('prevYear').onclick=()=>{annualYear--;renderYear()};$('nextYear').onclick=()=>{annualYear++;renderYear()};$('thisYear').onclick=()=>{annualYear=new Date().getFullYear();renderYear()};
-$('prevPurchaseMonth').onclick=()=>{purchaseMonth--;if(purchaseMonth<0){purchaseMonth=11;purchaseYear--}purchaseSelectedDate=null;renderPurchase()};
-$('nextPurchaseMonth').onclick=()=>{purchaseMonth++;if(purchaseMonth>11){purchaseMonth=0;purchaseYear++}purchaseSelectedDate=null;renderPurchase()};
-$('thisPurchaseMonth').onclick=()=>{const d=new Date();purchaseYear=d.getFullYear();purchaseMonth=d.getMonth();purchaseSelectedDate=null;renderPurchase()};
-$('printPurchaseMonth').onclick=printPurchaseMonth;$('purchaseClearDay').onclick=()=>{purchaseSelectedDate=null;renderPurchase()};
-$('purchaseVendorFilter').onchange=renderPurchase;$('purchaseSearch').oninput=renderPurchase;
-$('purchaseQty').oninput=()=>{delete $('purchaseAmount').dataset.manual;recalcPurchaseForm()};$('purchaseUnitPrice').oninput=()=>{delete $('purchaseAmount').dataset.manual;recalcPurchaseForm()};$('purchaseUnit').oninput=recalcPurchaseForm;$('purchaseAmount').oninput=()=>{$('purchaseAmount').dataset.manual='1'};
+$('showPurchaseMonth').onclick=()=>showPurchasePanel(purchasePanel==='month'?'entry':'month');
+$('showPurchaseYear').onclick=()=>showPurchasePanel(purchasePanel==='year'?'entry':'year');
+$('showVendorManager').onclick=()=>showPurchasePanel(purchasePanel==='vendor'?'entry':'vendor');
+$('purchaseParse').onclick=parsePurchaseNatural;$('purchaseNatural').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();parsePurchaseNatural()}};
+$('prevPurchaseMonth').onclick=()=>{purchaseMonth--;if(purchaseMonth<0){purchaseMonth=11;purchaseYear--}purchaseSelectedDate=null;renderPurchaseMonth()};
+$('nextPurchaseMonth').onclick=()=>{purchaseMonth++;if(purchaseMonth>11){purchaseMonth=0;purchaseYear++}purchaseSelectedDate=null;renderPurchaseMonth()};
+$('thisPurchaseMonth').onclick=()=>{const d=new Date();purchaseYear=d.getFullYear();purchaseMonth=d.getMonth();purchaseSelectedDate=null;renderPurchaseMonth()};
+$('prevPurchaseYear').onclick=()=>{purchaseAnnualYear--;renderPurchaseYear()};$('nextPurchaseYear').onclick=()=>{purchaseAnnualYear++;renderPurchaseYear()};$('thisPurchaseYear').onclick=()=>{purchaseAnnualYear=new Date().getFullYear();renderPurchaseYear()};
+$('printPurchaseMonth').onclick=printPurchaseMonth;
 $('prevSupplyMonth').onclick=()=>{supplyMonth--;if(supplyMonth<0){supplyMonth=11;supplyYear--}renderSupply()};$('nextSupplyMonth').onclick=()=>{supplyMonth++;if(supplyMonth>11){supplyMonth=0;supplyYear++}renderSupply()};$('thisSupplyMonth').onclick=()=>{const d=new Date();supplyYear=d.getFullYear();supplyMonth=d.getMonth();renderSupply()};
 $('newSupply').onclick=resetSupplyForm;$('saveSupply').onclick=saveSupply;$('refundReset').onclick=resetRefundForm;$('refundSave').onclick=saveRefund;$('purchaseReset').onclick=resetPurchaseForm;$('purchaseSave').onclick=savePurchase;$('vendorReset').onclick=resetVendorForm;$('vendorSave').onclick=saveVendor;$('seCancel').onclick=closeSupplyEdit;$('seSave').onclick=saveSupplyEdit;$('supplyEditModal').onclick=e=>{if(e.target===$('supplyEditModal'))closeSupplyEdit()};
 $('cancelManual').onclick=closeManual;$('saveManual').onclick=saveManual;$('manualModal').onclick=e=>{if(e.target===$('manualModal'))closeManual()};document.querySelectorAll('.manual-comment-preset').forEach(b=>b.onclick=()=>{const c=b.dataset.comment||'';$('editComment').value=c;if(c.includes('기기오류')||c.includes('청소'))$('editDecision').value='ignore';});
