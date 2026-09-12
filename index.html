@@ -190,7 +190,7 @@ tr:hover td{background:#fafafa}
   <header class="header">
     <div class="header-inner">
       <div class="header-title"><span class="u">UWASH</span> 매출결산</div>
-      <span class="header-meta"><b>WEB v2.3.0</b> · <span id="todayText"></span></span>
+      <span class="header-meta"><b>WEB v2.3.2</b> · <span id="todayText"></span></span>
       <div class="spacer"></div>
       <span id="roleText" class="role"></span>
       <div class="header-actions">
@@ -232,6 +232,10 @@ tr:hover td{background:#fafafa}
           <div class="metric"><div class="label">현금/계좌</div><div id="dCash" class="value"></div></div>
           <div class="metric"><div class="label">카드</div><div id="dCard" class="value"></div></div>
           <div class="metric"><div class="label">미확인 수동충전</div><div id="dPending" class="value"></div></div>
+        </div>
+        <div id="dailyFieldCardPending" class="preentry-note hidden" style="margin:8px 0">
+          <b>세차용품/현장카드 미확인</b> <span id="dailyFieldCardPendingCount"></span>
+          <button id="dailyFieldCardGo" class="edit-btn" style="margin-left:8px">확인하기</button>
         </div>
         <div id="dailyPurchaseLine" class="preentry-note hidden" style="margin:8px 0">
           <b>매입</b> <span id="dPurchaseTotal"></span>
@@ -333,6 +337,27 @@ tr:hover td{background:#fafafa}
         <button id="nextSupplyMonth" class="btn">▶</button>
         <button id="thisSupplyMonth" class="btn">이번 달</button>
         <div id="supplyTotalLine" class="summary"></div>
+      </div>
+
+      <div id="fieldCardSupplyPanel" class="card" style="padding:12px;margin-bottom:12px">
+        <div class="toolbar" style="margin-bottom:6px">
+          <div class="section-title" style="margin:0">미확인 세차용품 / 현장카드</div>
+          <div class="spacer"></div>
+          <div id="fieldCardPendingSummary" class="summary"></div>
+        </div>
+        <div id="fieldCardMissingNotice" class="preentry-note hidden">
+          현장카드 검산 테이블이 없습니다. v2.0.9 Supabase Migration이 적용되어 있는지 확인하세요.
+        </div>
+        <div style="font-size:11px;color:#666;margin-bottom:7px">
+          EasyShop 7636528에서 들어온 카드 승인 중 기존 수동충전/세차용품 장부와 확실히 매칭되지 않은 거래입니다.
+          확인 후 <b>세차용품 기록 / 수동충전 기록 / 무시</b> 중 하나로 처리하세요.
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr>
+            <th>날짜</th><th>시간</th><th>승인금액</th><th>승인번호</th><th>상태</th><th>비고</th><th id="fieldCardActionHead">처리</th>
+          </tr></thead>
+          <tbody id="fieldCardPendingBody"></tbody>
+        </table></div>
       </div>
 
       <div class="supply-layout">
@@ -586,7 +611,35 @@ tr:hover td{background:#fafafa}
     <datalist id="manualCommentPresets"><option value="기기오류"></option><option value="청소"></option><option value="계좌입금"></option><option value="법인카드"></option></datalist>
     <div class="form-actions" style="justify-content:flex-start;margin-top:4px"><button type="button" class="btn manual-comment-preset" data-comment="기기오류">기기오류</button><button type="button" class="btn manual-comment-preset" data-comment="청소">청소</button><button type="button" class="btn manual-comment-preset" data-comment="계좌입금">계좌입금</button><button type="button" class="btn manual-comment-preset" data-comment="법인카드">법인카드</button></div>
     <div id="manualError" class="error"></div>
-    <div class="modal-actions"><button id="cancelManual" class="btn">취소</button><button id="saveManual" class="btn primary">DB 저장</button></div>
+    <div class="modal-actions"><button id="deleteManual" class="btn">삭제</button><span style="flex:1"></span><button id="cancelManual" class="btn">취소</button><button id="saveManual" class="btn primary">DB 저장</button></div>
+  </div>
+</div>
+
+<div id="fieldCardClassifyModal" class="modal-bg hidden">
+  <div class="modal">
+    <h2 id="fieldCardClassifyTitle">미확인 카드거래 처리</h2>
+    <div id="fieldCardClassifyMeta" class="header-meta"></div>
+
+    <div id="fieldSupplyFields">
+      <div class="field"><label>세차용품 항목</label><select id="fieldSupplyItem"></select></div>
+      <div class="field"><label>금액</label><input id="fieldSupplyAmount" inputmode="numeric" readonly></div>
+      <div class="field"><label>코멘트</label><textarea id="fieldSupplyComment"></textarea></div>
+    </div>
+
+    <div id="fieldManualFields" class="hidden">
+      <div class="field"><label>충전금액</label><input id="fieldManualCharge" inputmode="numeric"></div>
+      <div class="field"><label>실수납액</label><input id="fieldManualSales" inputmode="numeric" readonly></div>
+      <div class="field"><label>코멘트</label><textarea id="fieldManualComment"></textarea></div>
+      <div style="font-size:11px;color:#666">
+        실제 카드 승인금액은 실수납액으로 기록합니다. 충전금액이 다르면 수정하세요.
+      </div>
+    </div>
+
+    <div id="fieldClassifyError" class="error"></div>
+    <div class="modal-actions">
+      <button id="fieldClassifyCancel" class="btn">취소</button>
+      <button id="fieldClassifySave" class="btn primary">기록</button>
+    </div>
   </div>
 </div>
 
@@ -600,7 +653,7 @@ tr:hover td{background:#fafafa}
     <div class="field"><label>금액</label><input id="seAmount" inputmode="numeric"></div>
     <div class="field"><label>물품/코멘트</label><textarea id="seComment"></textarea></div>
     <div id="seError" class="error"></div>
-    <div class="modal-actions"><button id="seCancel" class="btn">취소</button><button id="seSave" class="btn primary">수정 저장</button></div>
+    <div class="modal-actions"><button id="seDelete" class="btn">삭제</button><span style="flex:1"></span><button id="seCancel" class="btn">취소</button><button id="seSave" class="btn primary">수정 저장</button></div>
   </div>
 </div>
 
@@ -610,16 +663,16 @@ tr:hover td{background:#fafafa}
 const SUPABASE_URL="https://cubbhtzyrpksqsmisqur.supabase.co";
 const SUPABASE_KEY="sb_publishable_ZGbtzVP2L8O9WZ72VUCG_Q_R_b8yQX-";
 const HOLIDAYS=new Set(["2020-01-01", "2020-01-24", "2020-01-25", "2020-01-26", "2020-01-27", "2020-03-01", "2020-04-15", "2020-04-30", "2020-05-05", "2020-06-06", "2020-08-15", "2020-08-17", "2020-09-30", "2020-10-01", "2020-10-02", "2020-10-03", "2020-10-09", "2020-12-25", "2021-01-01", "2021-02-11", "2021-02-12", "2021-02-13", "2021-03-01", "2021-05-05", "2021-05-19", "2021-06-06", "2021-08-15", "2021-08-16", "2021-09-20", "2021-09-21", "2021-09-22", "2021-10-03", "2021-10-04", "2021-10-09", "2021-10-11", "2021-12-25", "2022-01-01", "2022-01-31", "2022-02-01", "2022-02-02", "2022-03-01", "2022-03-09", "2022-05-05", "2022-05-08", "2022-06-01", "2022-06-06", "2022-08-15", "2022-09-09", "2022-09-10", "2022-09-11", "2022-09-12", "2022-10-03", "2022-10-09", "2022-10-10", "2022-12-25", "2023-01-01", "2023-01-21", "2023-01-22", "2023-01-23", "2023-01-24", "2023-03-01", "2023-05-05", "2023-05-27", "2023-05-29", "2023-06-06", "2023-08-15", "2023-09-28", "2023-09-29", "2023-09-30", "2023-10-02", "2023-10-03", "2023-10-09", "2023-12-25", "2024-01-01", "2024-02-09", "2024-02-10", "2024-02-11", "2024-02-12", "2024-03-01", "2024-04-10", "2024-05-05", "2024-05-06", "2024-05-15", "2024-06-06", "2024-08-15", "2024-09-16", "2024-09-17", "2024-09-18", "2024-10-01", "2024-10-03", "2024-10-09", "2024-12-25", "2025-01-01", "2025-01-27", "2025-01-28", "2025-01-29", "2025-01-30", "2025-03-01", "2025-03-03", "2025-05-05", "2025-05-06", "2025-06-03", "2025-06-06", "2025-08-15", "2025-10-03", "2025-10-05", "2025-10-06", "2025-10-07", "2025-10-08", "2025-10-09", "2025-12-25", "2026-01-01", "2026-02-16", "2026-02-17", "2026-02-18", "2026-03-01", "2026-03-02", "2026-05-01", "2026-05-05", "2026-05-24", "2026-05-25", "2026-06-03", "2026-06-06", "2026-07-17", "2026-08-15", "2026-08-17", "2026-09-24", "2026-09-25", "2026-09-26", "2026-10-03", "2026-10-05", "2026-10-09", "2026-12-25", "2027-01-01", "2027-02-06", "2027-02-07", "2027-02-08", "2027-02-09", "2027-03-01", "2027-05-01", "2027-05-03", "2027-05-05", "2027-05-13", "2027-06-06", "2027-07-17", "2027-07-19", "2027-08-15", "2027-08-16", "2027-09-14", "2027-09-15", "2027-09-16", "2027-10-03", "2027-10-04", "2027-10-09", "2027-10-11", "2027-12-25", "2027-12-27", "2028-01-01", "2028-01-26", "2028-01-27", "2028-01-28", "2028-03-01", "2028-04-12", "2028-05-01", "2028-05-02", "2028-05-05", "2028-06-06", "2028-07-17", "2028-08-15", "2028-10-02", "2028-10-03", "2028-10-04", "2028-10-05", "2028-10-09", "2028-12-25", "2029-01-01", "2029-02-12", "2029-02-13", "2029-02-14", "2029-03-01", "2029-05-01", "2029-05-05", "2029-05-07", "2029-05-20", "2029-05-21", "2029-06-06", "2029-07-17", "2029-08-15", "2029-09-21", "2029-09-22", "2029-09-23", "2029-09-24", "2029-10-03", "2029-10-09", "2029-12-25", "2030-01-01", "2030-02-02", "2030-02-03", "2030-02-04", "2030-02-05", "2030-03-01", "2030-04-03", "2030-05-01", "2030-05-05", "2030-05-06", "2030-05-09", "2030-06-06", "2030-06-12", "2030-07-17", "2030-08-15", "2030-09-11", "2030-09-12", "2030-09-13", "2030-10-03", "2030-10-09", "2030-12-25", "2031-01-01", "2031-01-22", "2031-01-23", "2031-01-24", "2031-03-01", "2031-03-03", "2031-05-01", "2031-05-05", "2031-05-28", "2031-06-06", "2031-07-17", "2031-08-15", "2031-09-30", "2031-10-01", "2031-10-02", "2031-10-03", "2031-10-09", "2031-12-25", "2032-01-01", "2032-02-10", "2032-02-11", "2032-02-12", "2032-03-01", "2032-04-14", "2032-05-01", "2032-05-03", "2032-05-05", "2032-05-16", "2032-05-17", "2032-06-06", "2032-07-17", "2032-07-19", "2032-08-15", "2032-08-16", "2032-09-18", "2032-09-19", "2032-09-20", "2032-09-21", "2032-10-03", "2032-10-04", "2032-10-09", "2032-10-11", "2032-12-25", "2032-12-27", "2033-01-01", "2033-01-30", "2033-01-31", "2033-02-01", "2033-02-02", "2033-03-01", "2033-05-01", "2033-05-02", "2033-05-05", "2033-05-06", "2033-06-06", "2033-07-17", "2033-07-18", "2033-08-15", "2033-09-07", "2033-09-08", "2033-09-09", "2033-10-03", "2033-10-09", "2033-10-10", "2033-12-25", "2033-12-26", "2034-01-01", "2034-02-18", "2034-02-19", "2034-02-20", "2034-02-21", "2034-03-01", "2034-05-01", "2034-05-05", "2034-05-25", "2034-06-06", "2034-06-14", "2034-07-17", "2034-08-15", "2034-09-26", "2034-09-27", "2034-09-28", "2034-10-03", "2034-10-09", "2034-12-25", "2035-01-01", "2035-02-07", "2035-02-08", "2035-02-09", "2035-03-01", "2035-04-04", "2035-05-01", "2035-05-05", "2035-05-07", "2035-05-15", "2035-06-06", "2035-07-17", "2035-08-15", "2035-09-15", "2035-09-16", "2035-09-17", "2035-09-18", "2035-10-03", "2035-10-09", "2035-12-25", "2036-01-01", "2036-01-27", "2036-01-28", "2036-01-29", "2036-01-30", "2036-03-01", "2036-03-03", "2036-04-09", "2036-05-01", "2036-05-03", "2036-05-05", "2036-05-06", "2036-06-06", "2036-07-17", "2036-08-15", "2036-10-03", "2036-10-04", "2036-10-05", "2036-10-06", "2036-10-07", "2036-10-09", "2036-12-25"]);
-const BUILD_TIME="2026-09-10T21:15:45";
+const BUILD_TIME="2026-09-12T16:05:19";
 const $=id=>document.getElementById(id);
 const num=n=>Number(n)||0;
 const won=n=>num(n).toLocaleString('ko-KR')+'원';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let session=null;
-let dailyRows=[],manualRows=[],preentryRows=[],supplyItems=[],supplyRows=[],refundRows=[],purchaseVendors=[],purchaseRows=[],days={},manualByDate={};
+let dailyRows=[],manualRows=[],preentryRows=[],supplyItems=[],supplyRows=[],refundRows=[],purchaseVendors=[],purchaseRows=[],fieldCardRows=[],days={},manualByDate={};
 let now=new Date(),dailyDate='',year=now.getFullYear(),month=now.getMonth(),annualYear=year,supplyYear=year,supplyMonth=month;
-let editingManualKey=null,editingSupplyKey=null,editingPreentryKey=null,refundOriginal=null,lastLoadAt=0;
-let washcardRows=[],washcardSortDesc=true,preentryReconciling=false,purchaseDbReady=true,editingPurchaseKey=null,editingVendorKey=null,purchaseSelectedDate=null,purchaseYear=year,purchaseMonth=month,purchaseAnnualYear=year,purchasePanel='entry';
+let editingManualKey=null,editingSupplyKey=null,editingPreentryKey=null,editingFieldCardKey=null,fieldClassifyMode=null,refundOriginal=null,lastLoadAt=0;
+let washcardRows=[],washcardSortDesc=true,preentryReconciling=false,fieldCardReconciling=false,fieldCardReady=true,purchaseDbReady=true,editingPurchaseKey=null,editingVendorKey=null,purchaseSelectedDate=null,purchaseYear=year,purchaseMonth=month,purchaseAnnualYear=year,purchasePanel='entry';
 
 function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
 function parseDate(k){return new Date(k+'T00:00:00')}
@@ -642,6 +695,19 @@ async function fetchAllOptional(table,select='*',order=''){
     throw e;
   }
 }
+async function fetchFieldCardEventsOptional(){
+  try{
+    fieldCardReady=true;
+    return await fetchAll('uwash_field_card_events','*','sale_date.asc,event_time.asc');
+  }catch(e){
+    const msg=String(e?.message||e||'');
+    if(msg.includes('Could not find the table')||msg.includes('schema cache')||msg.includes('42P01')||msg.includes('does not exist')){
+      fieldCardReady=false;
+      return [];
+    }
+    throw e;
+  }
+}
 
 function showApp(){
   $('loginPage').classList.add('hidden');$('app').classList.remove('hidden');$('statusbar').classList.remove('hidden');
@@ -655,6 +721,7 @@ function showApp(){
   $('peActionHead').style.display=session.role==='admin'?'':'none';
   $('refundActionHead').style.display=session.role==='admin'?'':'none';
   $('purchaseActionHead').style.display=session.role==='admin'?'':'none';
+  $('fieldCardActionHead').style.display=session.role==='admin'?'':'none';
   const d=new Date(),wd=['일','월','화','수','목','금','토'][d.getDay()];
   $('todayText').textContent=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} (${wd})`;
 }
@@ -665,7 +732,7 @@ async function loadData(){
   $('refreshBtn').disabled=true;
   try{
     purchaseDbReady=true;
-    const [d,m,pre,items,sales,refunds,vendors,purchases]=await Promise.all([
+    const [d,m,pre,items,sales,refunds,vendors,purchases,fieldCards]=await Promise.all([
       fetchAll('uwash_daily_sales','*','sale_date.asc'),
       fetchAll('uwash_manual_charge','*','sale_date.asc,event_time.asc'),
       fetchAll('uwash_manual_preentry','*','sale_date.asc,created_at.asc'),
@@ -673,9 +740,10 @@ async function loadData(){
       fetchAll('uwash_supply_sales','*','sale_date.asc'),
       fetchAll('uwash_refunds','*','refund_date.asc,created_at.asc'),
       fetchAllOptional('uwash_purchase_vendors','*','vendor_name.asc'),
-      fetchAllOptional('uwash_purchases','*','purchase_date.asc,created_at.asc')
+      fetchAllOptional('uwash_purchases','*','purchase_date.asc,created_at.asc'),
+      fetchFieldCardEventsOptional()
     ]);
-    dailyRows=d;manualRows=m;preentryRows=pre;supplyItems=items;supplyRows=sales;refundRows=refunds;purchaseVendors=vendors;purchaseRows=purchases;days={};manualByDate={};
+    dailyRows=d;manualRows=m;preentryRows=pre;supplyItems=items;supplyRows=sales;refundRows=refunds;purchaseVendors=vendors;purchaseRows=purchases;fieldCardRows=fieldCards;days={};manualByDate={};
     for(const r of d)days[r.sale_date]=r;
     for(const r of m)(manualByDate[r.sale_date]??=[]).push(r);
     if(!dailyDate){
@@ -684,9 +752,9 @@ async function loadData(){
     }
     lastLoadAt=Date.now();
     renderDaily();renderMonth();renderYear();renderPreentry();renderSupply();renderRefund();renderPurchase();
-    if(session?.role==='admin'&&preentryRows.some(x=>x.status==='pending'))setTimeout(()=>autoReconcilePendingPreentries(),80);
+    if(session?.role==='admin'&&preentryRows.some(x=>x.status==='pending'))setTimeout(()=>autoReconcilePendingPreentries(),80);if(session?.role==='admin'&&fieldCardRows.some(x=>x.status==='pending'&&x.approval_type==='approval'))setTimeout(()=>autoReconcileFieldCardsWeb(),120);
     const synced=d.map(x=>x.synced_at).filter(Boolean).sort().at(-1)||'-';
-    setStatus(`DB 연결됨 · 일매출 ${d.length.toLocaleString()}일 · 수동충전 ${m.length.toLocaleString()}건 · 사전기록 ${pre.length.toLocaleString()}건 · 세차용품 ${sales.length.toLocaleString()}건 · 반품/환불 ${refunds.length.toLocaleString()}건 · 매입 ${purchases.length.toLocaleString()}건 · 최근동기화 ${String(synced).replace('T',' ').slice(0,19)}`);
+    setStatus(`DB 연결됨 · 일매출 ${d.length.toLocaleString()}일 · 수동충전 ${m.length.toLocaleString()}건 · 사전기록 ${pre.length.toLocaleString()}건 · 세차용품 ${sales.length.toLocaleString()}건 · 현장카드 미확인 ${fieldCards.filter(x=>x.status==='pending').length.toLocaleString()}건 · 반품/환불 ${refunds.length.toLocaleString()}건 · 매입 ${purchases.length.toLocaleString()}건 · 최근동기화 ${String(synced).replace('T',' ').slice(0,19)}`);
   }catch(e){setStatus('DB 조회 실패: '+e.message,true)}
   finally{$('refreshBtn').disabled=false}
 }
@@ -711,6 +779,9 @@ function renderDaily(){
   $('dPending').textContent=num(r.pending_count).toLocaleString()+'건';
   $('dUnattended').textContent=won(r.unattended_cash);$('dManualCash').textContent=won(r.manual_cash);$('dManualAccount').textContent=won(r.manual_account);
   $('dCardSales').textContent=won(r.card_sales);$('dManualCard').textContent=won(r.manual_card);$('dCardCount').textContent=num(r.card_count).toLocaleString()+'건';$('dSupplyCash').textContent=won(r.supply_cash);$('dSupplyAccount').textContent=won(r.supply_account);$('dSupplyCard').textContent=won(r.supply_card);$('dRefund').textContent='-'+won(r.refund_total);
+  const fieldPendingToday=fieldCardRows.filter(x=>x.sale_date===dailyDate&&x.status==='pending'&&x.approval_type==='approval');
+  $('dailyFieldCardPending').classList.toggle('hidden',fieldPendingToday.length===0);
+  $('dailyFieldCardPendingCount').textContent=fieldPendingToday.length.toLocaleString()+'건';
   $('dailyPurchaseLine').classList.toggle('hidden',purchaseTotal<=0);$('dPurchaseTotal').textContent=won(purchaseTotal);
   $('dailyState').textContent=stored?(num(r.pending_count)?`미확인 ${num(r.pending_count)}건`:'확인 완료'):'매출 미집계';
   const list=manualByDate[dailyDate]||[],labels={pending:'미확인',record:'기록',ignore:'무시'};
@@ -719,9 +790,9 @@ function renderDaily(){
     <td>${esc(x.event_time||'')}</td><td class="num">${won(x.charge_amount)}</td>
     <td class="num">${x.sales_amount==null?'미입력':won(x.sales_amount)}</td><td>${x.card_no?`<button class="card-link manual-card-link" data-card="${esc(x.card_no)}">${esc(x.card_no)}</button>`:''}</td><td>${esc(x.machine||'')}</td>
     <td><span class="tag ${esc(x.decision||'pending')}">${labels[x.decision]||esc(x.decision||'')}</span></td><td>${esc(x.payment_method||'')}</td>
-    <td class="comment manual-comment-cell" data-key="${esc(x.transaction_key)}" style="cursor:pointer" title="클릭: 코멘트 선택">${esc(x.comment||'')}</td>${session?.role==='admin'?`<td>${x.decision==='pending'?`<button class="edit-btn manual-quick-record" data-key="${esc(x.transaction_key)}">기록</button> <button class="edit-btn manual-quick-ignore" data-key="${esc(x.transaction_key)}">무시</button> `:''}${x.decision==='record'?`<button class="edit-btn manual-refund" data-key="${esc(x.transaction_key)}">반품</button> `:''}<button class="edit-btn manual-edit" data-key="${esc(x.transaction_key)}">수정</button></td>`:''}
+    <td class="comment manual-comment-cell" data-key="${esc(x.transaction_key)}" style="cursor:pointer" title="클릭: 코멘트 선택">${esc(x.comment||'')}</td>${session?.role==='admin'?`<td>${x.decision==='pending'?`<button class="edit-btn manual-quick-record" data-key="${esc(x.transaction_key)}">기록</button> <button class="edit-btn manual-quick-ignore" data-key="${esc(x.transaction_key)}">무시</button> `:''}${x.decision==='record'?`<button class="edit-btn manual-refund" data-key="${esc(x.transaction_key)}">반품</button> `:''}<button class="edit-btn manual-edit" data-key="${esc(x.transaction_key)}">수정</button> <button class="edit-btn manual-delete" data-key="${esc(x.transaction_key)}">삭제</button></td>`:''}
   </tr>`).join('');
-  document.querySelectorAll('.manual-edit').forEach(b=>b.onclick=()=>openManualEdit(b.dataset.key));document.querySelectorAll('.manual-refund').forEach(b=>b.onclick=()=>openRefundFromManual(b.dataset.key));
+  document.querySelectorAll('.manual-edit').forEach(b=>b.onclick=()=>openManualEdit(b.dataset.key));document.querySelectorAll('.manual-refund').forEach(b=>b.onclick=()=>openRefundFromManual(b.dataset.key));document.querySelectorAll('.manual-delete').forEach(b=>b.onclick=()=>deleteManualCharge(b.dataset.key));
   document.querySelectorAll('.manual-quick-record').forEach(b=>b.onclick=()=>quickManualRecord(b.dataset.key));
   document.querySelectorAll('.manual-quick-ignore').forEach(b=>b.onclick=()=>quickManualIgnore(b.dataset.key));
   document.querySelectorAll('.manual-comment-cell').forEach(c=>c.onclick=()=>openManualCommentPreset(c.dataset.key));
@@ -1187,11 +1258,232 @@ async function cancelPreentry(key){
   }catch(e){setStatus('사전기록 취소 실패: '+e.message,true)}
 }
 
+async function createLedgerTombstone(type,key,saleDate,reason){
+  const nowIso=new Date().toISOString();
+  await apiWrite(
+    'POST',
+    'uwash_ledger_tombstones?on_conflict=ledger_type,transaction_key',
+    {
+      ledger_type:type,
+      transaction_key:key,
+      sale_date:saleDate||null,
+      reason:reason||'웹 삭제',
+      deleted_at:nowIso
+    }
+  );
+}
+async function reopenLinksAfterLedgerDelete(type,key){
+  try{
+    if(type==='manual'){
+      await apiWrite(
+        'PATCH',
+        'uwash_manual_preentry?matched_transaction_key=eq.'+encodeURIComponent(key)+'&status=eq.matched',
+        {status:'pending',matched_transaction_key:null,local_updated_at:new Date().toISOString()}
+      );
+    }
+  }catch(e){console.warn('preentry reopen failed',e)}
+  try{
+    await apiWrite(
+      'PATCH',
+      'uwash_field_card_events?linked_type=eq.'+encodeURIComponent(type)+'&linked_key=eq.'+encodeURIComponent(key)+'&status=neq.cancelled',
+      {
+        status:'pending',
+        linked_type:null,
+        linked_key:null,
+        comment:'연결 장부 웹 삭제로 재확인',
+        local_updated_at:new Date().toISOString()
+      }
+    );
+  }catch(e){console.warn('field card reopen failed',e)}
+}
+
+function fieldCardStatusLabel(status){
+  return {pending:'미확인',auto_manual:'수동충전 자동확인',auto_supply:'세차용품 자동확인',manual:'수동충전',supply:'세차용품',ignored:'무시',cancelled:'승인취소'}[status]||status||'';
+}
+function fieldTimeGapSec(dateValue,a,b){
+  if(!a||!b)return null;
+  const x=new Date(`${dateValue}T${String(a).slice(0,8)}`),y=new Date(`${dateValue}T${String(b).slice(0,8)}`);
+  const v=Math.abs((x-y)/1000);
+  return Number.isFinite(v)?v:null;
+}
+function usedFieldLinkedKeys(type){
+  return new Set(fieldCardRows.filter(x=>x.linked_type===type&&x.linked_key).map(x=>x.linked_key));
+}
+async function autoReconcileFieldCardsWeb(){
+  if(fieldCardReconciling||session?.role!=='admin'||!fieldCardReady)return;
+  fieldCardReconciling=true;
+  let matched=0;
+  try{
+    const linkedManual=usedFieldLinkedKeys('manual'),linkedSupply=usedFieldLinkedKeys('supply');
+    for(const e of fieldCardRows.filter(x=>x.status==='pending'&&x.approval_type==='approval')){
+      const manual=manualRows.filter(m=>{
+        if(m.sale_date!==e.sale_date||m.decision!=='record'||m.payment_method!=='카드'||num(m.sales_amount)!==num(e.amount)||linkedManual.has(m.transaction_key))return false;
+        const gap=fieldTimeGapSec(e.sale_date,e.event_time,m.event_time);
+        return gap!=null&&gap<=30*60;
+      });
+      const supply=supplyRows.filter(s=>s.sale_date===e.sale_date&&s.payment_method==='카드'&&num(s.amount)===num(e.amount)&&!linkedSupply.has(s.transaction_key));
+      if(manual.length===1&&supply.length===0){
+        await apiWrite('PATCH','uwash_field_card_events?event_key=eq.'+encodeURIComponent(e.event_key),{
+          status:'auto_manual',linked_type:'manual',linked_key:manual[0].transaction_key,
+          comment:e.comment||'웹 자동대조 · 수동충전',local_updated_at:new Date().toISOString()
+        });
+        linkedManual.add(manual[0].transaction_key);matched++;
+      }else if(supply.length===1&&manual.length===0){
+        await apiWrite('PATCH','uwash_field_card_events?event_key=eq.'+encodeURIComponent(e.event_key),{
+          status:'auto_supply',linked_type:'supply',linked_key:supply[0].transaction_key,
+          comment:e.comment||'웹 자동대조 · 세차용품',local_updated_at:new Date().toISOString()
+        });
+        linkedSupply.add(supply[0].transaction_key);matched++;
+      }
+    }
+    if(matched){
+      await loadData();
+      setStatus(`현장카드 미확인 ${matched}건을 기존 장부와 자동대조했습니다.`);
+    }
+  }catch(e){setStatus('현장카드 자동대조 실패: '+e.message,true)}
+  finally{fieldCardReconciling=false}
+}
+function renderFieldCardPending(){
+  const pending=fieldCardRows.filter(x=>x.status==='pending'&&x.approval_type==='approval').sort((a,b)=>String(b.sale_date).localeCompare(String(a.sale_date))||String(b.event_time).localeCompare(String(a.event_time)));
+  $('fieldCardMissingNotice').classList.toggle('hidden',fieldCardReady);
+  $('fieldCardPendingSummary').textContent=fieldCardReady?`미확인 ${pending.length.toLocaleString()}건`:'DB 미준비';
+  $('fieldCardSupplyPanel').classList.toggle('hidden',fieldCardReady&&pending.length===0);
+  $('fieldCardPendingBody').innerHTML=pending.map(e=>`<tr>
+    <td>${esc(e.sale_date)}</td><td>${esc(String(e.event_time||'').slice(0,8))}</td>
+    <td class="num"><b>${won(e.amount)}</b></td><td>${esc(e.approval_no||'')}</td>
+    <td><span class="tag pending">미확인</span></td><td>${esc(e.comment||'')}</td>
+    ${session?.role==='admin'?`<td><button class="edit-btn field-to-supply" data-key="${esc(e.event_key)}">세차용품 기록</button> <button class="edit-btn field-to-manual" data-key="${esc(e.event_key)}">수동충전 기록</button> <button class="edit-btn field-ignore" data-key="${esc(e.event_key)}">무시</button></td>`:''}
+  </tr>`).join('');
+  document.querySelectorAll('.field-to-supply').forEach(b=>b.onclick=()=>openFieldCardClassify(b.dataset.key,'supply'));
+  document.querySelectorAll('.field-to-manual').forEach(b=>b.onclick=()=>openFieldCardClassify(b.dataset.key,'manual'));
+  document.querySelectorAll('.field-ignore').forEach(b=>b.onclick=()=>ignoreFieldCardEventWeb(b.dataset.key));
+}
+function openFieldCardClassify(key,mode){
+  if(session?.role!=='admin')return;
+  const e=fieldCardRows.find(x=>x.event_key===key&&x.status==='pending');if(!e)return;
+  editingFieldCardKey=key;fieldClassifyMode=mode;
+  $('fieldCardClassifyTitle').textContent=mode==='supply'?'미확인 → 세차용품 기록':'미확인 → 수동충전 기록';
+  $('fieldCardClassifyMeta').textContent=`${e.sale_date} ${String(e.event_time||'').slice(0,8)} · 카드승인 ${won(e.amount)}${e.approval_no?` · 승인번호 ${e.approval_no}`:''}`;
+  $('fieldSupplyFields').classList.toggle('hidden',mode!=='supply');
+  $('fieldManualFields').classList.toggle('hidden',mode!=='manual');
+  $('fieldClassifyError').textContent='';
+  if(mode==='supply'){
+    const active=supplyItems.filter(x=>x.is_active);
+    $('fieldSupplyItem').innerHTML=active.map(x=>`<option value="${esc(x.item_key)}">${esc(x.item_name)}</option>`).join('');
+    $('fieldSupplyAmount').value=String(num(e.amount));
+    $('fieldSupplyComment').value='현장카드 7636528 미확인 확인';
+  }else{
+    $('fieldManualCharge').value=String(num(e.amount));
+    $('fieldManualSales').value=String(num(e.amount));
+    $('fieldManualComment').value='현장카드 7636528 미확인 확인';
+  }
+  $('fieldCardClassifyModal').classList.remove('hidden');
+}
+function closeFieldCardClassify(){
+  editingFieldCardKey=null;fieldClassifyMode=null;$('fieldCardClassifyModal').classList.add('hidden');
+}
+async function ensureDailyParentForField(dateValue){
+  const exists=days[dateValue];
+  if(exists)return;
+  const nowIso=new Date().toISOString();
+  await apiWrite('POST','uwash_daily_sales?on_conflict=sale_date',{
+    sale_date:dateValue,unattended_cash:0,manual_cash:0,manual_account:0,manual_card:0,
+    card_sales:0,card_count:0,pending_count:0,supply_cash:0,supply_account:0,supply_card:0,supply_total:0,
+    refund_cash:0,refund_account:0,refund_card:0,refund_total:0,cash_total:0,card_total:0,total_sales:0,
+    local_updated_at:nowIso
+  });
+}
+async function saveFieldCardClassification(){
+  const e=fieldCardRows.find(x=>x.event_key===editingFieldCardKey);if(!e||!fieldClassifyMode)return;
+  const mode=fieldClassifyMode,nowIso=new Date().toISOString();
+  $('fieldClassifySave').disabled=true;$('fieldClassifyError').textContent='저장 중...';
+  try{
+    let linkedKey='';
+    if(mode==='supply'){
+      const item=supplyItems.find(x=>x.item_key===$('fieldSupplyItem').value);
+      if(!item)throw new Error('세차용품 항목을 선택하세요.');
+      const used=usedFieldLinkedKeys('supply');
+      const existing=supplyRows.filter(s=>
+        s.sale_date===e.sale_date&&s.payment_method==='카드'
+        &&num(s.amount)===num(e.amount)&&s.item_key===item.item_key
+        &&!used.has(s.transaction_key)
+      );
+      if(existing.length>1)throw new Error('같은 날짜·금액·항목의 세차용품 장부가 여러 건입니다. 기존 장부를 먼저 확인하세요.');
+      if(existing.length===1){
+        linkedKey=existing[0].transaction_key;
+      }else{
+        linkedKey='field-supply-'+e.event_key;
+        await apiWrite('POST','uwash_supply_sales?on_conflict=transaction_key',{
+          transaction_key:linkedKey,sale_date:e.sale_date,item_key:item.item_key,item_name:item.item_name,
+          payment_method:'카드',amount:num(e.amount),comment:$('fieldSupplyComment').value.trim(),
+          local_updated_at:nowIso
+        });
+      }
+      await apiWrite('PATCH','uwash_field_card_events?event_key=eq.'+encodeURIComponent(e.event_key),{
+        status:'supply',linked_type:'supply',linked_key:linkedKey,
+        comment:existing.length===1?'웹에서 기존 세차용품 장부와 확인':'웹에서 세차용품으로 신규 기록',
+        local_updated_at:nowIso
+      });
+    }else{
+      const raw=$('fieldManualCharge').value.replace(/[,원\s]/g,'');
+      if(!/^\d+$/.test(raw)||Number(raw)<=0)throw new Error('충전금액을 숫자로 입력하세요.');
+      const chargeAmount=Number(raw),used=usedFieldLinkedKeys('manual');
+      const existing=manualRows.filter(m=>
+        m.sale_date===e.sale_date&&num(m.charge_amount)===chargeAmount
+        &&m.transaction_key&&!used.has(m.transaction_key)
+      );
+      if(existing.length>1)throw new Error('같은 날짜·충전금액의 수동충전 후보가 여러 건입니다. 수동충전 화면에서 먼저 확인하세요.');
+      await ensureDailyParentForField(e.sale_date);
+      if(existing.length===1){
+        linkedKey=existing[0].transaction_key;
+        if(existing[0].decision==='pending'){
+          await apiWrite('PATCH','uwash_manual_charge?transaction_key=eq.'+encodeURIComponent(linkedKey),{
+            decision:'record',sales_amount:num(e.amount),payment_method:'카드',
+            comment:$('fieldManualComment').value.trim(),local_updated_at:nowIso
+          });
+        }
+      }else{
+        linkedKey='field-manual-'+e.event_key;
+        await apiWrite('POST','uwash_manual_charge?on_conflict=transaction_key',{
+          transaction_key:linkedKey,sale_date:e.sale_date,event_time:String(e.event_time||'').slice(0,8),
+          charge_amount:chargeAmount,sales_amount:num(e.amount),card_no:null,machine:'EasyShop 7636528',
+          decision:'record',payment_method:'카드',comment:$('fieldManualComment').value.trim(),
+          source_hash:'field-card-web',source_row:num(e.source_row),local_updated_at:nowIso
+        });
+      }
+      await apiWrite('PATCH','uwash_field_card_events?event_key=eq.'+encodeURIComponent(e.event_key),{
+        status:'manual',linked_type:'manual',linked_key:linkedKey,
+        comment:existing.length===1?'웹에서 기존 수동충전 장부와 확인':'웹에서 수동충전으로 신규 기록',
+        local_updated_at:nowIso
+      });
+    }
+    await recalcDaily(e.sale_date);
+    closeFieldCardClassify();
+    await loadData();
+    supplyYear=Number(e.sale_date.slice(0,4));supplyMonth=Number(e.sale_date.slice(5,7))-1;
+    activate('supply');
+    setStatus(mode==='manual'?'수동충전으로 처리했습니다.':'세차용품으로 처리했습니다.');
+  }catch(err){$('fieldClassifyError').textContent='처리 실패: '+err.message}
+  finally{$('fieldClassifySave').disabled=false}
+}
+async function ignoreFieldCardEventWeb(key){
+  if(session?.role!=='admin')return;
+  const e=fieldCardRows.find(x=>x.event_key===key);if(!e)return;
+  if(!confirm(`${e.sale_date} ${String(e.event_time||'').slice(0,8)} · ${won(e.amount)}\n\n이 현장카드 거래를 무시할까요?`))return;
+  try{
+    await apiWrite('PATCH','uwash_field_card_events?event_key=eq.'+encodeURIComponent(key),{
+      status:'ignored',linked_type:null,linked_key:null,comment:'웹에서 무시 처리',local_updated_at:new Date().toISOString()
+    });
+    await loadData();activate('supply');setStatus('미확인 현장카드를 무시 처리했습니다.');
+  }catch(e2){setStatus('무시 처리 실패: '+e2.message,true)}
+}
+
 function resetSupplyForm(){
   editingSupplyKey=null;$('supplyDate').value=dateKey(new Date());$('supplyMethod').value='현금';$('supplyAmount').value='';$('supplyComment').value='';$('supplyError').textContent='';
   if($('supplyItem').options.length)$('supplyItem').selectedIndex=0;
 }
 function renderSupply(){
+  renderFieldCardPending();
   $('supplyMonthTitle').textContent=`${supplyYear}년 ${supplyMonth+1}월`;
   const active=supplyItems.filter(x=>x.is_active);
   $('supplyItem').innerHTML=active.map(x=>`<option value="${esc(x.item_key)}">${esc(x.item_name)}</option>`).join('');
@@ -1202,9 +1494,9 @@ function renderSupply(){
   $('supplyTotalLine').textContent=`장부 ${rows.length}건 · ${total.toLocaleString()}원`;
   $('supplyBody').innerHTML=rows.map(r=>`<tr>
     <td>${esc(r.sale_date)}</td><td>${esc(r.item_name)}</td><td>${esc(r.payment_method)}</td><td class="num">${won(r.amount)}</td><td class="comment">${esc(r.comment||'')}</td>
-    ${session?.role==='admin'?`<td><button class="edit-btn supply-refund" data-key="${esc(r.transaction_key)}">반품</button> <button class="edit-btn supply-edit" data-key="${esc(r.transaction_key)}">수정</button></td>`:''}
+    ${session?.role==='admin'?`<td><button class="edit-btn supply-refund" data-key="${esc(r.transaction_key)}">반품</button> <button class="edit-btn supply-edit" data-key="${esc(r.transaction_key)}">수정</button> <button class="edit-btn supply-delete" data-key="${esc(r.transaction_key)}">삭제</button></td>`:''}
   </tr>`).join('');
-  document.querySelectorAll('.supply-edit').forEach(b=>b.onclick=()=>editSupply(b.dataset.key));document.querySelectorAll('.supply-refund').forEach(b=>b.onclick=()=>openRefundFromSupply(b.dataset.key));
+  document.querySelectorAll('.supply-edit').forEach(b=>b.onclick=()=>editSupply(b.dataset.key));document.querySelectorAll('.supply-refund').forEach(b=>b.onclick=()=>openRefundFromSupply(b.dataset.key));document.querySelectorAll('.supply-delete').forEach(b=>b.onclick=()=>deleteSupply(b.dataset.key));
 }
 function editSupply(key){
   if(session?.role!=='admin')return;
@@ -1262,10 +1554,30 @@ async function saveSupply(){
   }catch(e){$('supplyError').textContent='저장 실패: '+e.message}
   finally{$('saveSupply').disabled=false}
 }
-async function deleteSupply(){
-  if(!editingSupplyKey){$('supplyError').textContent='삭제할 장부 항목을 먼저 선택하세요.';return}
-  if(!confirm('선택한 세차용품 장부 기록을 삭제할까요?'))return;
-  try{await apiWrite('DELETE','uwash_supply_sales?transaction_key=eq.'+encodeURIComponent(editingSupplyKey),null);resetSupplyForm();await loadData();setStatus('세차용품 장부 기록을 삭제했습니다.')}catch(e){$('supplyError').textContent='삭제 실패: '+e.message}
+async function deleteSupply(key=null){
+  if(session?.role!=='admin')return;
+  const targetKey=key||editingSupplyKey;
+  const r=supplyRows.find(x=>x.transaction_key===targetKey);
+  if(!r){setStatus('삭제할 세차용품 장부를 찾지 못했습니다.',true);return}
+  if(!confirm(
+    `세차용품 장부를 삭제할까요?\n\n${r.sale_date} · ${r.item_name} · ${won(r.amount)}\n\n`
+    +'잘못 입력한 기록을 지울 때 사용하는 기능입니다.\n실제 고객 환불은 반품/환불 기능을 사용하세요.'
+  ))return;
+  try{
+    await createLedgerTombstone('supply',targetKey,r.sale_date,'웹에서 잘못 입력한 세차용품 삭제');
+    await reopenLinksAfterLedgerDelete('supply',targetKey);
+    await apiWrite('DELETE','uwash_supply_sales?transaction_key=eq.'+encodeURIComponent(targetKey),null);
+    await recalcDaily(r.sale_date);
+    if(editingSupplyKey===targetKey)closeSupplyEdit();
+    await loadData();
+    supplyYear=Number(r.sale_date.slice(0,4));
+    supplyMonth=Number(r.sale_date.slice(5,7))-1;
+    renderSupply();
+    setStatus('세차용품 장부를 삭제했습니다. PC 동기화 후에도 다시 생성되지 않습니다.');
+  }catch(e){
+    setStatus('세차용품 삭제 실패: '+e.message,true);
+    if($('seError'))$('seError').textContent='삭제 실패: '+e.message;
+  }
 }
 
 async function quickManualIgnore(key){
@@ -1341,6 +1653,31 @@ async function recalcDaily(k){
     local_updated_at:new Date().toISOString()
   });
 }
+async function deleteManualCharge(key=null){
+  if(session?.role!=='admin')return;
+  const targetKey=key||editingManualKey;
+  const r=manualRows.find(x=>x.transaction_key===targetKey);
+  if(!r){setStatus('삭제할 수동충전 기록을 찾지 못했습니다.',true);return}
+  if(!confirm(
+    `수동충전 기록을 삭제할까요?\n\n${r.sale_date} ${r.event_time||''} · 충전 ${won(r.charge_amount)}\n\n`
+    +'잘못 입력한 기록을 지울 때 사용하는 기능입니다.\n실제 고객 환불은 반품/환불 기능을 사용하세요.'
+  ))return;
+  try{
+    await createLedgerTombstone('manual',targetKey,r.sale_date,'웹에서 잘못 입력한 수동충전 삭제');
+    await reopenLinksAfterLedgerDelete('manual',targetKey);
+    await apiWrite('DELETE','uwash_manual_charge?transaction_key=eq.'+encodeURIComponent(targetKey),null);
+    await recalcDaily(r.sale_date);
+    if(editingManualKey===targetKey)closeManual();
+    await loadData();
+    dailyDate=r.sale_date;
+    renderDaily();
+    setStatus('수동충전 기록을 삭제했습니다. PC 동기화 후에도 다시 생성되지 않습니다.');
+  }catch(e){
+    setStatus('수동충전 삭제 실패: '+e.message,true);
+    if($('manualError'))$('manualError').textContent='삭제 실패: '+e.message;
+  }
+}
+
 async function saveManual(){
   const r=manualRows.find(x=>x.transaction_key===editingManualKey);if(!r)return;
   let decision=$('editDecision').value;
@@ -1774,6 +2111,7 @@ $('printDaily').onclick=printDailySales;$('printMonth').onclick=printMonthSales;
 $('peSave').onclick=savePreentry;$('pemClose').onclick=closePreentryEditor;$('pemSave').onclick=savePreentryEdit;$('preentryEditModal').onclick=e=>{if(e.target===$('preentryEditModal'))closePreentryEditor()};
 $('peComment').onchange=()=>{const c=$('peComment').value||'';if(c.includes('기기오류')||c.includes('청소'))$('peDecision').value='ignore';};
 $('washcardSearchBtn').onclick=searchWashcard;$('washcardQuery').onkeydown=e=>{if(e.key==='Enter')searchWashcard()};$('washcardClearBtn').onclick=()=>{$('washcardQuery').value='';washcardRows=[];$('washcardSummary').textContent='세차카드 번호를 입력하세요.';renderWashcard()};$('washcardDateHead').onclick=()=>{washcardSortDesc=!washcardSortDesc;renderWashcard()};
+$('dailyFieldCardGo').onclick=()=>activate('supply');
 $('prevDay').onclick=()=>moveDaily(-1);$('nextDay').onclick=()=>moveDaily(1);$('todayDay').onclick=()=>{dailyDate=dateKey(new Date());renderDaily()};
 $('prevMonth').onclick=()=>{month--;if(month<0){month=11;year--}renderMonth()};$('nextMonth').onclick=()=>{month++;if(month>11){month=0;year++}renderMonth()};$('thisMonth').onclick=()=>{const d=new Date();year=d.getFullYear();month=d.getMonth();renderMonth()};
 $('prevYear').onclick=()=>{annualYear--;renderYear()};$('nextYear').onclick=()=>{annualYear++;renderYear()};$('thisYear').onclick=()=>{annualYear=new Date().getFullYear();renderYear()};
@@ -1787,8 +2125,8 @@ $('thisPurchaseMonth').onclick=()=>{const d=new Date();purchaseYear=d.getFullYea
 $('prevPurchaseYear').onclick=()=>{purchaseAnnualYear--;renderPurchaseYear()};$('nextPurchaseYear').onclick=()=>{purchaseAnnualYear++;renderPurchaseYear()};$('thisPurchaseYear').onclick=()=>{purchaseAnnualYear=new Date().getFullYear();renderPurchaseYear()};
 $('printPurchaseMonth').onclick=printPurchaseMonth;
 $('prevSupplyMonth').onclick=()=>{supplyMonth--;if(supplyMonth<0){supplyMonth=11;supplyYear--}renderSupply()};$('nextSupplyMonth').onclick=()=>{supplyMonth++;if(supplyMonth>11){supplyMonth=0;supplyYear++}renderSupply()};$('thisSupplyMonth').onclick=()=>{const d=new Date();supplyYear=d.getFullYear();supplyMonth=d.getMonth();renderSupply()};
-$('newSupply').onclick=resetSupplyForm;$('saveSupply').onclick=saveSupply;$('refundReset').onclick=resetRefundForm;$('refundSave').onclick=saveRefund;$('purchaseReset').onclick=resetPurchaseForm;$('purchaseSave').onclick=savePurchase;$('vendorReset').onclick=resetVendorForm;$('vendorSave').onclick=saveVendor;$('seCancel').onclick=closeSupplyEdit;$('seSave').onclick=saveSupplyEdit;$('supplyEditModal').onclick=e=>{if(e.target===$('supplyEditModal'))closeSupplyEdit()};
-$('cancelManual').onclick=closeManual;$('saveManual').onclick=saveManual;$('manualModal').onclick=e=>{if(e.target===$('manualModal'))closeManual()};document.querySelectorAll('.manual-comment-preset').forEach(b=>b.onclick=()=>{const c=b.dataset.comment||'';$('editComment').value=c;if(c.includes('기기오류')||c.includes('청소'))$('editDecision').value='ignore';});
+$('newSupply').onclick=resetSupplyForm;$('saveSupply').onclick=saveSupply;$('refundReset').onclick=resetRefundForm;$('refundSave').onclick=saveRefund;$('purchaseReset').onclick=resetPurchaseForm;$('purchaseSave').onclick=savePurchase;$('vendorReset').onclick=resetVendorForm;$('vendorSave').onclick=saveVendor;$('seCancel').onclick=closeSupplyEdit;$('seSave').onclick=saveSupplyEdit;$('seDelete').onclick=()=>deleteSupply();$('fieldClassifyCancel').onclick=closeFieldCardClassify;$('fieldClassifySave').onclick=saveFieldCardClassification;$('fieldCardClassifyModal').onclick=e=>{if(e.target===$('fieldCardClassifyModal'))closeFieldCardClassify()};$('supplyEditModal').onclick=e=>{if(e.target===$('supplyEditModal'))closeSupplyEdit()};
+$('cancelManual').onclick=closeManual;$('saveManual').onclick=saveManual;$('deleteManual').onclick=()=>deleteManualCharge();$('manualModal').onclick=e=>{if(e.target===$('manualModal'))closeManual()};document.querySelectorAll('.manual-comment-preset').forEach(b=>b.onclick=()=>{const c=b.dataset.comment||'';$('editComment').value=c;if(c.includes('기기오류')||c.includes('청소'))$('editDecision').value='ignore';});
 resetPreentryForm();resetSupplyForm();resetRefundForm();resetPurchaseForm();resetVendorForm();boot();
 </script>
 </body>
